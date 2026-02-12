@@ -1,0 +1,281 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@cliffy/command@^1.0.0-rc.7": "1.0.0-rc.8",
+    "jsr:@cliffy/flags@1.0.0-rc.8": "1.0.0-rc.8",
+    "jsr:@cliffy/internal@1.0.0-rc.8": "1.0.0-rc.8",
+    "jsr:@cliffy/table@1.0.0-rc.8": "1.0.0-rc.8",
+    "jsr:@cliffy/table@^1.0.0-rc.7": "1.0.0-rc.8",
+    "jsr:@std/assert@1": "1.0.18",
+    "jsr:@std/fmt@~1.0.2": "1.0.8",
+    "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/path@1": "1.1.4",
+    "jsr:@std/text@~1.0.7": "1.0.17",
+    "jsr:@std/yaml@1": "1.0.11",
+    "jsr:@zip-js/zip-js@^2.8.20": "2.8.20",
+    "npm:@ast-grep/lang-bash@^0.0.7": "0.0.7",
+    "npm:@ast-grep/lang-javascript@^0.0.6": "0.0.6",
+    "npm:@ast-grep/lang-markdown@^0.0.5": "0.0.5",
+    "npm:@ast-grep/lang-python@^0.0.5": "0.0.5",
+    "npm:@ast-grep/lang-typescript@^0.0.6": "0.0.6",
+    "npm:@ast-grep/napi@~0.40.5": "0.40.5",
+    "npm:@supabase/supabase-js@^2.39.0": "2.95.3"
+  },
+  "jsr": {
+    "@cliffy/command@1.0.0-rc.8": {
+      "integrity": "758147790797c74a707e5294cc7285df665422a13d2a483437092ffce40b5557",
+      "dependencies": [
+        "jsr:@cliffy/flags",
+        "jsr:@cliffy/internal",
+        "jsr:@cliffy/table@1.0.0-rc.8",
+        "jsr:@std/fmt",
+        "jsr:@std/text"
+      ]
+    },
+    "@cliffy/flags@1.0.0-rc.8": {
+      "integrity": "0f1043ce6ef037ba1cb5fe6b1bcecb25dc2f29371a1c17f278ab0f45e4b6f46c",
+      "dependencies": [
+        "jsr:@std/text"
+      ]
+    },
+    "@cliffy/internal@1.0.0-rc.8": {
+      "integrity": "34cdf2fad9b084b5aed493b138d573f52d4e988767215f7460daf0b918ff43d8"
+    },
+    "@cliffy/table@1.0.0-rc.8": {
+      "integrity": "8bbcdc2ba5e0061b4b13810a24e6f5c6ab19c09f0cce9eb691ccd76c7c6c9db5",
+      "dependencies": [
+        "jsr:@std/fmt"
+      ]
+    },
+    "@std/assert@1.0.18": {
+      "integrity": "270245e9c2c13b446286de475131dc688ca9abcd94fc5db41d43a219b34d1c78",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/fmt@1.0.8": {
+      "integrity": "71e1fc498787e4434d213647a6e43e794af4fd393ef8f52062246e06f7e372b7"
+    },
+    "@std/internal@1.0.12": {
+      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
+    "@std/path@1.1.4": {
+      "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/text@1.0.17": {
+      "integrity": "4b2c4ef67ae5b6c1dfd447c81c83a43718f52e3c7e748d8b33f694aba9895f95"
+    },
+    "@std/yaml@1.0.11": {
+      "integrity": "bd139ce77f2d06cbed3713c8b26d301d2a2e12ecc7986130a268107e212143ee"
+    },
+    "@zip-js/zip-js@2.8.20": {
+      "integrity": "64bbc8b46777e1369dd258852c2244083a413a1e7cba3a7bf27a99cc88d3b860"
+    }
+  },
+  "npm": {
+    "@ast-grep/lang-bash@0.0.7": {
+      "integrity": "sha512-tbPrTkmUv3YVKZZg8q51nAE5ItVVq6WzGPrJtiDKLZ3AdfRzZCOC2VgRwJBWD+VbFELqSVARKwXoQB6E8k+xug==",
+      "dependencies": [
+        "@ast-grep/setup-lang"
+      ],
+      "scripts": true
+    },
+    "@ast-grep/lang-javascript@0.0.6": {
+      "integrity": "sha512-Jp9EPa7wBSW6+YKaq0reqko8YP1s4ty+EHjn/xVHynLzEZ7/et13Bh7bpEp4xWUJAeMA3wffLJDWe27ml0e94g==",
+      "dependencies": [
+        "@ast-grep/setup-lang"
+      ],
+      "scripts": true
+    },
+    "@ast-grep/lang-markdown@0.0.5": {
+      "integrity": "sha512-wzWGYm2IEcKPb7NBR/k4b6CGBrMy4RLEPOZUS3brN3/YxXEhBQ9ZbwE2MkusV7iH19sVdiBxsNNglXL8BU7hDg==",
+      "dependencies": [
+        "@ast-grep/setup-lang"
+      ],
+      "scripts": true
+    },
+    "@ast-grep/lang-python@0.0.5": {
+      "integrity": "sha512-gbNwaCPvuyZFEG4y6zwylLRLsh1DWiOeLeZ/aWOlYRR0nxoXimuMPank6psT88rijnD6esBLWhFq6kkFhndzjQ==",
+      "dependencies": [
+        "@ast-grep/setup-lang"
+      ],
+      "scripts": true
+    },
+    "@ast-grep/lang-typescript@0.0.6": {
+      "integrity": "sha512-J7B9zyf/VrxNr/lMxbKHmNTQKsO/GdUzOFbPeLbCwI2h6f2SydUwCTfiFO8qXrcrdwkJAxkUH40/Vj2ISfUgDQ==",
+      "dependencies": [
+        "@ast-grep/setup-lang"
+      ],
+      "scripts": true
+    },
+    "@ast-grep/napi-darwin-arm64@0.40.5": {
+      "integrity": "sha512-2F072fGN0WTq7KI3okuEnkGJVEHLbi56Bw1H6NAMf7j2mJJeQWsRyGOMcyNnUXZDeNdvoMH0OB2a5wwUegY/nQ==",
+      "os": ["darwin"],
+      "cpu": ["arm64"]
+    },
+    "@ast-grep/napi-darwin-x64@0.40.5": {
+      "integrity": "sha512-dJMidHZhhxuLBYNi6/FKI812jQ7wcFPSKkVPwviez2D+KvYagapUMAV/4dJ7FCORfguVk8Y0jpPAlYmWRT5nvA==",
+      "os": ["darwin"],
+      "cpu": ["x64"]
+    },
+    "@ast-grep/napi-linux-arm64-gnu@0.40.5": {
+      "integrity": "sha512-nBRCbyoS87uqkaw4Oyfe5VO+SRm2B+0g0T8ME69Qry9ShMf41a2bTdpcQx9e8scZPogq+CTwDHo3THyBV71l9w==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@ast-grep/napi-linux-arm64-musl@0.40.5": {
+      "integrity": "sha512-/qKsmds5FMoaEj6FdNzepbmLMtlFuBLdrAn9GIWCqOIcVcYvM1Nka8+mncfeXB/MFZKOrzQsQdPTWqrrQzXLrA==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@ast-grep/napi-linux-x64-gnu@0.40.5": {
+      "integrity": "sha512-DP4oDbq7f/1A2hRTFLhJfDFR6aI5mRWdEfKfHzRItmlKsR9WlcEl1qDJs/zX9R2EEtIDsSKRzuJNfJllY3/W8Q==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@ast-grep/napi-linux-x64-musl@0.40.5": {
+      "integrity": "sha512-BRZUvVBPUNpWPo6Ns8chXVzxHPY+k9gpsubGTHy92Q26ecZULd/dTkWWdnvfhRqttsSQ9Pe/XQdi5+hDQ6RYcg==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@ast-grep/napi-win32-arm64-msvc@0.40.5": {
+      "integrity": "sha512-y95zSEwc7vhxmcrcH0GnK4ZHEBQrmrszRBNQovzaciF9GUqEcCACNLoBesn4V47IaOp4fYgD2/EhGRTIBFb2Ug==",
+      "os": ["win32"],
+      "cpu": ["arm64"]
+    },
+    "@ast-grep/napi-win32-ia32-msvc@0.40.5": {
+      "integrity": "sha512-K/u8De62iUnFCzVUs7FBdTZ2Jrgc5/DLHqjpup66KxZ7GIM9/HGME/O8aSoPkpcAeCD4TiTZ11C1i5p5H98hTg==",
+      "os": ["win32"],
+      "cpu": ["ia32"]
+    },
+    "@ast-grep/napi-win32-x64-msvc@0.40.5": {
+      "integrity": "sha512-dqm5zg/o4Nh4VOQPEpMS23ot8HVd22gG0eg01t4CFcZeuzyuSgBlOL3N7xLbz3iH2sVkk7keuBwAzOIpTqziNQ==",
+      "os": ["win32"],
+      "cpu": ["x64"]
+    },
+    "@ast-grep/napi@0.40.5": {
+      "integrity": "sha512-hJA62OeBKUQT68DD2gDyhOqJxZxycqg8wLxbqjgqSzYttCMSDL9tiAQ9abgekBYNHudbJosm9sWOEbmCDfpX2A==",
+      "optionalDependencies": [
+        "@ast-grep/napi-darwin-arm64",
+        "@ast-grep/napi-darwin-x64",
+        "@ast-grep/napi-linux-arm64-gnu",
+        "@ast-grep/napi-linux-arm64-musl",
+        "@ast-grep/napi-linux-x64-gnu",
+        "@ast-grep/napi-linux-x64-musl",
+        "@ast-grep/napi-win32-arm64-msvc",
+        "@ast-grep/napi-win32-ia32-msvc",
+        "@ast-grep/napi-win32-x64-msvc"
+      ]
+    },
+    "@ast-grep/setup-lang@0.0.6": {
+      "integrity": "sha512-aSYZNF5nGQMxnwiA3Lcc8zi0AtpGlug47ADgqCgP/2n7p922FbnW7vo1rbW4kKjW72B/3mDdN7uvYidv8JnPnw=="
+    },
+    "@supabase/auth-js@2.95.3": {
+      "integrity": "sha512-vD2YoS8E2iKIX0F7EwXTmqhUpaNsmbU6X2R0/NdFcs02oEfnHyNP/3M716f3wVJ2E5XHGiTFXki6lRckhJ0Thg==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "@supabase/functions-js@2.95.3": {
+      "integrity": "sha512-uTuOAKzs9R/IovW1krO0ZbUHSJnsnyJElTXIRhjJTqymIVGcHzkAYnBCJqd7468Fs/Foz1BQ7Dv6DCl05lr7ig==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "@supabase/postgrest-js@2.95.3": {
+      "integrity": "sha512-LTrRBqU1gOovxRm1vRXPItSMPBmEFqrfTqdPTRtzOILV4jPSueFz6pES5hpb4LRlkFwCPRmv3nQJ5N625V2Xrg==",
+      "dependencies": [
+        "tslib"
+      ]
+    },
+    "@supabase/realtime-js@2.95.3": {
+      "integrity": "sha512-D7EAtfU3w6BEUxDACjowWNJo/ZRo7sDIuhuOGKHIm9FHieGeoJV5R6GKTLtga/5l/6fDr2u+WcW/m8I9SYmaIw==",
+      "dependencies": [
+        "@types/phoenix",
+        "@types/ws",
+        "tslib",
+        "ws"
+      ]
+    },
+    "@supabase/storage-js@2.95.3": {
+      "integrity": "sha512-4GxkJiXI3HHWjxpC3sDx1BVrV87O0hfX+wvJdqGv67KeCu+g44SPnII8y0LL/Wr677jB7tpjAxKdtVWf+xhc9A==",
+      "dependencies": [
+        "iceberg-js",
+        "tslib"
+      ]
+    },
+    "@supabase/supabase-js@2.95.3": {
+      "integrity": "sha512-Fukw1cUTQ6xdLiHDJhKKPu6svEPaCEDvThqCne3OaQyZvuq2qjhJAd91kJu3PXLG18aooCgYBaB6qQz35hhABg==",
+      "dependencies": [
+        "@supabase/auth-js",
+        "@supabase/functions-js",
+        "@supabase/postgrest-js",
+        "@supabase/realtime-js",
+        "@supabase/storage-js"
+      ]
+    },
+    "@types/node@25.2.3": {
+      "integrity": "sha512-m0jEgYlYz+mDJZ2+F4v8D1AyQb+QzsNqRuI7xg1VQX/KlKS0qT9r1Mo16yo5F/MtifXFgaofIFsdFMox2SxIbQ==",
+      "dependencies": [
+        "undici-types"
+      ]
+    },
+    "@types/phoenix@1.6.7": {
+      "integrity": "sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q=="
+    },
+    "@types/ws@8.18.1": {
+      "integrity": "sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==",
+      "dependencies": [
+        "@types/node"
+      ]
+    },
+    "iceberg-js@0.8.1": {
+      "integrity": "sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA=="
+    },
+    "tslib@2.8.1": {
+      "integrity": "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="
+    },
+    "undici-types@7.16.0": {
+      "integrity": "sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw=="
+    },
+    "ws@8.19.0": {
+      "integrity": "sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@1",
+      "jsr:@std/testing@1"
+    ],
+    "members": {
+      "packages/analyzer": {
+        "dependencies": [
+          "jsr:@std/path@1",
+          "jsr:@std/yaml@1",
+          "npm:@ast-grep/lang-bash@^0.0.7",
+          "npm:@ast-grep/lang-javascript@^0.0.6",
+          "npm:@ast-grep/lang-markdown@^0.0.5",
+          "npm:@ast-grep/lang-python@^0.0.5",
+          "npm:@ast-grep/lang-typescript@^0.0.6",
+          "npm:@ast-grep/napi@~0.40.5"
+        ]
+      },
+      "packages/cli": {
+        "dependencies": [
+          "jsr:@cliffy/command@^1.0.0-rc.7",
+          "jsr:@cliffy/table@^1.0.0-rc.7",
+          "jsr:@std/fmt@1"
+        ]
+      },
+      "packages/skillreader": {
+        "dependencies": [
+          "jsr:@zip-js/zip-js@^2.8.20",
+          "npm:@supabase/supabase-js@^2.39.0"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+import type { AstGrepRule } from "../../astgrep/client.ts";
+
+export const JAVASCRIPT_NETWORK_RULES: AstGrepRule[] = [
+    {
+        id: "net-fetch",
+        description: "Detects fetch() calls",
+        language: "javascript",
+        patterns: [
+            "fetch($URL)",
+            "fetch($URL, { method: $METHOD })",
+            "fetch($URL, { headers: $HEADERS })",
+            "fetch($URL, { method: $METHOD, headers: $HEADERS })",
+        ],
+        permission: {
+            tool: "fetch",
+            scope: "net",
+            permission: "fetch",
+            metadata: {
+                url: "URL",
+                method: "METHOD",
+                headers: "HEADERS",
+            },
+        },
+    },
+];

@@ -1,0 +1,13 @@
+{
+    "name": "@FeiyouG/skill-lab",
+    "version": "0.1.0",
+    "exports": "./mod.ts",
+    "imports": {
+        "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.39.0",
+        "@zip-js/zip-js": "jsr:@zip-js/zip-js@^2.8.20"
+    },
+    "tasks": {
+        "check": "deno fmt --check && deno lint && deno check **/*.ts",
+        "test": "deno test --allow-all --permit-no-files"
+    }
+}

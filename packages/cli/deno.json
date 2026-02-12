@@ -1,0 +1,20 @@
+{
+    "name": "@FeiyouG/skill-lab-cli",
+    "version": "0.1.0",
+    "exports": "./src/main.ts",
+    "imports": {
+        "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7",
+        "@cliffy/table": "jsr:@cliffy/table@^1.0.0-rc.7",
+        "@std/fmt": "jsr:@std/fmt@^1.0.0",
+        "@FeiyouG/skill-lab": "../skillreader/mod.ts",
+        "@FeiyouG/skill-lab-shared": "../shared/mod.ts",
+        "@FeiyouG/skill-lab-analyzer": "../analyzer/mod.ts"
+    },
+    "tasks": {
+        "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts",
+        "build": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --output=slab src/main.ts",
+        "test": "deno test --allow-all",
+        "install": "deno install --allow-net --allow-read --allow-write --allow-env --allow-ffi --name=slab src/main.ts",
+        "check": "deno fmt --check && deno lint && deno check src/**/*.ts"
+    }
+}
