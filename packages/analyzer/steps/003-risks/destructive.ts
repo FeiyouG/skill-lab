@@ -15,7 +15,7 @@ export function analyzeDestructiveAndPrivilegeRisks(state: AnalyzerState): Analy
             continue;
         }
 
-        const permissionIds = permissionsForFinding(next, finding.ruleId);
+        const permissionIds = permissionsForFinding(next, finding);
         if (permissionIds.length === 0) continue;
 
         next = addRisk(next, {
@@ -31,14 +31,26 @@ export function analyzeDestructiveAndPrivilegeRisks(state: AnalyzerState): Analy
     return next;
 }
 
-function permissionsForFinding(state: AnalyzerState, ruleId: string): string[] {
-    if (ruleId.startsWith("fs-")) {
-        return state.permissions.filter((perm) => perm.scope === "fs" || perm.scope === "sys").map((
-            perm,
-        ) => perm.id);
-    }
-    if (ruleId.startsWith("shell-")) {
-        return state.permissions.filter((perm) => perm.scope === "sys").map((perm) => perm.id);
-    }
-    return [];
+function permissionsForFinding(
+    state: AnalyzerState,
+    finding: AnalyzerState["findings"][number],
+): string[] {
+    if (!finding.ruleId.startsWith("fs-") && !finding.ruleId.startsWith("shell-")) return [];
+
+    const scopedPermissions = state.permissions.filter((perm) => {
+        if (finding.ruleId.startsWith("fs-")) {
+            return perm.scope === "fs" || perm.scope === "sys";
+        }
+        return perm.scope === "sys";
+    });
+
+    const matched = scopedPermissions.filter((perm) =>
+        perm.references.some((reference) =>
+            reference.file === finding.reference.file &&
+            reference.line <= (finding.reference.lineEnd ?? finding.reference.line) &&
+            (reference.lineEnd ?? reference.line) >= finding.reference.line
+        )
+    );
+
+    return matched.map((perm) => perm.id);
 }

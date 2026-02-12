@@ -13,6 +13,7 @@ export type CodeBlock = {
     language: FileType;
     content: string;
     startLine: number;
+    endLine: number;
     type: ReferenceType;
 };
 
@@ -23,6 +24,7 @@ export async function extractCodeBlocks(content: string, fileType: FileType): Pr
         language: defaultLanguage,
         content,
         startLine: 1,
+        endLine: Math.max(1, content.split("\n").length),
         type: "content",
     }];
 
@@ -42,10 +44,14 @@ export async function extractCodeBlocks(content: string, fileType: FileType): Pr
             const codeContent = codeNodes.map((node) => node.text).join("\n").trimEnd();
             if (!codeContent.trim()) continue;
 
+            const contentStartLine = codeNodes[0]?.startPosition.row + 1;
+            const endLine = contentStartLine + codeContent.split("\n").length - 1;
+
             blocks.push({
                 language: fenceLanguage ?? "bash",
                 content: codeContent,
-                startLine: block.startPosition.row + 1,
+                startLine: contentStartLine,
+                endLine,
                 type: "script",
             });
         }
@@ -58,11 +64,80 @@ export async function extractCodeBlocks(content: string, fileType: FileType): Pr
                 language: "bash",
                 content: snippet,
                 startLine: node.startPosition.row + 1,
+                endLine: node.startPosition.row + 1,
                 type: "inline",
             });
         }
     } catch {
-        // Whole-file block already included.
+        blocks.push(...extractCodeBlocksFallback(content));
+    }
+
+    return blocks;
+}
+
+function extractCodeBlocksFallback(content: string): CodeBlock[] {
+    const blocks: CodeBlock[] = [];
+    const lines = content.split("\n");
+    let inFence = false;
+    let fenceDelimiter = "";
+    let fenceLanguage = "";
+    let fenceStartLine = 0;
+    const fenceContent: string[] = [];
+
+    for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        const lineNo = i + 1;
+        const openMatch = line.match(/^\s*(`{3,}|~{3,})\s*([a-zA-Z0-9_-]+)?\s*$/);
+
+        if (!inFence && openMatch) {
+            inFence = true;
+            fenceDelimiter = openMatch[1][0];
+            fenceLanguage = openMatch[2] ?? "";
+            fenceStartLine = lineNo + 1;
+            fenceContent.length = 0;
+            continue;
+        }
+
+        if (inFence && line.match(new RegExp(`^\\s*${fenceDelimiter}{3,}\\s*$`))) {
+            const codeContent = fenceContent.join("\n").trimEnd();
+            if (codeContent.trim()) {
+                const language = detectLanguageFromFence(fenceLanguage) ?? "bash";
+                const endLine = fenceStartLine + codeContent.split("\n").length - 1;
+                blocks.push({
+                    language,
+                    content: codeContent,
+                    startLine: fenceStartLine,
+                    endLine,
+                    type: "script",
+                });
+            }
+            inFence = false;
+            fenceDelimiter = "";
+            fenceLanguage = "";
+            fenceStartLine = 0;
+            fenceContent.length = 0;
+            continue;
+        }
+
+        if (inFence) {
+            fenceContent.push(line);
+        }
+    }
+
+    for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        const lineNo = i + 1;
+        for (const match of line.matchAll(/`([^`\n]{1,200})`/g)) {
+            const snippet = match[1].trim();
+            if (!snippet || !/^[a-z]/i.test(snippet)) continue;
+            blocks.push({
+                language: "bash",
+                content: snippet,
+                startLine: lineNo,
+                endLine: lineNo,
+                type: "inline",
+            });
+        }
     }
 
     return blocks;

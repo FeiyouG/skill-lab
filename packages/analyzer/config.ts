@@ -88,6 +88,7 @@ export const RISK_RULE_MAPPING: Record<string, { type: string; severity: Severit
     "inject-eval": { type: "command_injection", severity: "critical" },
     "inject-substitution": { type: "command_injection", severity: "warning" },
     "prompt-ignore-previous": { type: "prompt_override", severity: "critical" },
-    "prompt-system-prompt": { type: "prompt_override", severity: "critical" },
     "prompt-forget-rules": { type: "prompt_override", severity: "critical" },
+    "prompt-ignore-and-reveal": { type: "prompt_override", severity: "critical" },
+    "prompt-reveal-system-prompt": { type: "prompt_override", severity: "warning" },
 };

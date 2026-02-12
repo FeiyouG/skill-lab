@@ -111,7 +111,7 @@ export function matchesToFindings(
     file: string,
     type: ReferenceType,
     matches: AstGrepMatch[],
-    invokedBy?: Reference,
+    referencedBy?: Reference,
 ): Finding[] {
     return matches.map((match) => ({
         ruleId: match.ruleId,
@@ -120,7 +120,7 @@ export function matchesToFindings(
             line: match.line,
             lineEnd: match.lineEnd,
             type,
-            invokedBy,
+            referencedBy,
         },
         extracted: match.extracted,
     }));

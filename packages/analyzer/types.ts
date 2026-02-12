@@ -25,7 +25,8 @@ export type FileRole =
     | "reference"
     | "config"
     | "script"
-    | "regular";
+    | "regular"
+    | "host-fs"; // path targeting the host filesystem (not a skill-local file)
 
 export type SourceType = "local" | "external";
 
@@ -34,7 +35,7 @@ export type Reference = {
     line: number;
     lineEnd?: number;
     type: ReferenceType;
-    invokedBy?: Reference;
+    referencedBy?: Reference;
 };
 
 export type Permission = {
@@ -67,7 +68,16 @@ export type FileReference = {
     fileType: FileType;
     role: FileRole;
     depth: number;
-    invokedBy?: Reference;
+    referencedBy?: Reference;
+    /** How this reference was discovered during file extraction. */
+    discoveryMethod?:
+        | "markdown-link"
+        | "inline-code"
+        | "bare-path"
+        | "import"
+        | "url"
+        | "source"
+        | "code-block";
 };
 
 export type Finding = {
