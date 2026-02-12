@@ -1,4 +1,5 @@
 import { parse as parseYaml } from "jsr:@std/yaml@^1.0.0";
+import { extractFrontmatter } from "./frontmatter-parser.ts";
 
 export type SkillContentType = "text" | "binary" | "unknown";
 
@@ -80,13 +81,14 @@ export abstract class SkillReader {
      */
     public async getSkillMdFrontmatter(): Promise<SkillFrontmatter> {
         const content = await this.getSkillMdContent();
-        const match = content.match(/^---\n([\s\S]*?)\n---/);
-        if (!match) {
+        const frontmatter = await extractFrontmatter(content);
+        if (!frontmatter) {
             throw new Error("Invalid skill repository: SKILL.md missing YAML frontmatter");
         }
         let parsed: SkillFrontmatter;
         try {
-            parsed = (parseYaml(match[1]) as SkillFrontmatter) ?? ({} as SkillFrontmatter);
+            parsed = (parseYaml(frontmatter.content) as SkillFrontmatter) ??
+                ({} as SkillFrontmatter);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             throw new Error(`Invalid skill repository: YAML frontmatter parse failed: ${message}`);

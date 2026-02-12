@@ -1,5 +1,5 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
-import { BASH_COMMAND_RULES } from "./commands.ts";
+import { BASH_COMMAND_RULES } from "./commands/mod.ts";
 import { BASH_DESTRUCTIVE_RULES } from "./destructive.ts";
 import { BASH_FILESYSTEM_RULES } from "./filesystem.ts";
 import { BASH_INJECTION_RULES } from "./injection.ts";

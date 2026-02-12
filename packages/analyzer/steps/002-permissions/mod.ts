@@ -58,7 +58,7 @@ export async function run002Permissions(
         const content = await context.skillReader.readTextFile(fileRef.path);
         if (!content) continue;
 
-        next = scanFileForPermissions({
+        next = await scanFileForPermissions({
             state: next,
             fileRef,
             content,

@@ -1,9 +1,10 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
+import type { FileType } from "../../types.ts";
+import { extractCodeBlocks } from "../markdown/extractCodeBlocks.ts";
 
 export const TEXT_RULES: AstGrepRule[] = [];
 
-// Plain text files are treated like markdown for command/code examples.
 export const TEXT_FILETYPE_CONFIG = {
-    extractCodeBlocks: true,
-    defaultCodeBlockLanguage: "bash",
+    extractCodeBlocks,
+    defaultLanguage: "markdown" as FileType,
 };

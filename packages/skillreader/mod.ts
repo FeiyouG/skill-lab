@@ -19,4 +19,5 @@ export {
 export { contentTypeFromPath, isProbablyText, parseFrontmatter } from "./utils.ts";
 export { LocalFsSkillReader } from "./fs/mod.ts";
 export { GitHubApiSkillReader, GitHubRawSkillReader, GitHubSkillReader } from "./github/mod.ts";
-export { SupabaseSkillReader } from "./supabase/mod.ts";
+export { CloudStorageSkillReader } from "./cloudStorage/mod.ts";
+export type { CloudStorageSkillReaderOptions } from "./cloudStorage/mod.ts";

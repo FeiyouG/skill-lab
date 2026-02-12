@@ -8,6 +8,7 @@ import { TEXT_FILETYPE_CONFIG, TEXT_RULES } from "./text/mod.ts";
 import { TYPESCRIPT_RULES } from "./typescript/mod.ts";
 import type { FileType } from "../types.ts";
 import type { AstGrepRule } from "../astgrep/client.ts";
+import type { CodeBlock } from "./markdown/extractCodeBlocks.ts";
 
 // Single registry used for both file-level scanning and code-block scanning.
 export const RULES_BY_FILETYPE: Partial<Record<FileType, readonly AstGrepRule[]>> = {
@@ -19,9 +20,22 @@ export const RULES_BY_FILETYPE: Partial<Record<FileType, readonly AstGrepRule[]>
     python: PYTHON_RULES,
 } as const;
 
-export const FILETYPE_CONFIGS = {
+export const FILETYPE_CONFIGS: Partial<
+    Record<FileType, {
+        extractCodeBlocks?: (content: string, fileType: FileType) => Promise<CodeBlock[]>;
+        defaultLanguage: FileType | null;
+    }>
+> = {
     markdown: MARKDOWN_FILETYPE_CONFIG,
     text: TEXT_FILETYPE_CONFIG,
+    bash: { defaultLanguage: "bash" },
+    javascript: { defaultLanguage: "javascript" },
+    typescript: { defaultLanguage: "typescript" },
+    python: { defaultLanguage: "python" },
+    json: { defaultLanguage: null },
+    yaml: { defaultLanguage: null },
+    binary: { defaultLanguage: null },
+    unknown: { defaultLanguage: null },
 } as const;
 
 export { SHARED_PATTERNS };

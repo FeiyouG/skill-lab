@@ -1,9 +1,10 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
+import type { FileType } from "../../types.ts";
+import { extractCodeBlocks } from "./extractCodeBlocks.ts";
 
 export const MARKDOWN_RULES: AstGrepRule[] = [];
 
-// Markdown files can embed executable code blocks.
 export const MARKDOWN_FILETYPE_CONFIG = {
-    extractCodeBlocks: true,
-    defaultCodeBlockLanguage: "bash",
+    extractCodeBlocks,
+    defaultLanguage: "markdown" as FileType,
 };

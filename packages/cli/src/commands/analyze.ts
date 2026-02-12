@@ -1,6 +1,5 @@
 import { Command } from "@cliffy/command";
-import { runAnalysis } from "@FeiyouG/skill-lab-analyzer";
-import { GitHubSkillReader, LocalFsSkillReader, SupabaseSkillReader } from "@FeiyouG/skill-lab";
+import { CloudStorageSkillReader, GitHubSkillReader, LocalFsSkillReader } from "@FeiyouG/skill-lab";
 import { analyzerV1 } from "@FeiyouG/skill-lab-shared";
 import { join } from "jsr:@std/path@^1.0.0";
 
@@ -9,23 +8,19 @@ type AnalyzeOptions = {
     gitRef?: string;
     dir?: string;
     githubToken?: string;
-    supabase?: string;
-    supabaseUrl?: string;
-    supabaseKey?: string;
+    cloud?: string;
     analyzer?: string;
     json?: boolean;
 };
 
 export const analyzeCommand = new Command()
-    .description("Analyze a skill from local, GitHub, or Supabase")
+    .description("Analyze a skill from local, GitHub, or cloud storage")
     .arguments("[path:string]")
     .option("--github <url:string>", "GitHub repository URL")
     .option("--gitRef <sha:string>", "Commit SHA, branch, or tag for GitHub analysis")
     .option("--dir <path:string>", "Subdirectory within the skill")
     .option("--github-token <token:string>", "GitHub token (overrides GITHUB_TOKEN)")
-    .option("--supabase <bucketPrefix:string>", "Supabase bucket/prefix (bucket or bucket/prefix)")
-    .option("--supabase-url <url:string>", "Supabase URL (overrides SUPABASE_URL)")
-    .option("--supabase-key <key:string>", "Supabase key (overrides SUPABASE_KEY)")
+    .option("--cloud <baseUrl:string>", "Cloud storage base URL")
     .option("--analyzer <version:string>", "Analyzer version: v2 (default) or v1")
     .option("--json", "Output as JSON")
     .action(async (options: AnalyzeOptions, path?: string) => {
@@ -46,6 +41,7 @@ export const analyzeCommand = new Command()
                 return;
             }
 
+            const { runAnalysis } = await import("@FeiyouG/skill-lab-analyzer");
             const result = await runAnalysis({
                 context: { skillReader: reader },
                 skillId: "local",
@@ -125,26 +121,15 @@ async function resolveReader(options: AnalyzeOptions, path?: string) {
         });
     }
 
-    if (options.supabase) {
-        const supabaseUrl = options.supabaseUrl ?? Deno.env.get("SUPABASE_URL");
-        const supabaseKey = options.supabaseKey ?? Deno.env.get("SUPABASE_KEY");
-        if (!supabaseUrl || !supabaseKey) {
-            throw new Error("Supabase URL and key required. Use --supabase-url/--supabase-key.");
-        }
-        const { bucket, prefix } = parseBucketPrefix(options.supabase);
-        return new SupabaseSkillReader({
-            supabaseUrl,
-            supabaseKey,
-            bucket,
-            prefix,
-        });
+    if (options.cloud) {
+        return new CloudStorageSkillReader({ baseUrl: options.cloud });
     }
 
     if (!path) {
-        throw new Error("Path required. Provide a local path or use --github/--supabase.");
+        throw new Error("Path required. Provide a local path or use --github/--cloud.");
     }
-    if (path.startsWith("https://")) {
-        throw new Error("URL provided. Use --github or --supabase with the URL instead.");
+    if (path.startsWith("https://") || path.startsWith("http://")) {
+        throw new Error("URL provided. Use --github or --cloud with the URL instead.");
     }
     const rootPath = options.dir ? join(path, options.dir) : path;
     try {
@@ -158,13 +143,4 @@ async function resolveReader(options: AnalyzeOptions, path?: string) {
     }
 
     return new LocalFsSkillReader({ root: rootPath });
-}
-
-function parseBucketPrefix(input: string): { bucket: string; prefix: string } {
-    const trimmed = input.replace(/^\/+|\/+$/g, "");
-    if (!trimmed) {
-        throw new Error("Supabase bucket/prefix required");
-    }
-    const [bucket, ...rest] = trimmed.split("/");
-    return { bucket, prefix: rest.join("/") };
 }

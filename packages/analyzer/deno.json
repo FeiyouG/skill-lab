@@ -4,6 +4,8 @@
     "exports": "./mod.ts",
     "imports": {
         "@FeiyouG/skill-lab": "../skillreader/mod.ts",
+        "tree-sitter": "npm:tree-sitter@^0.25.0",
+        "@tree-sitter-grammars/tree-sitter-markdown": "npm:@tree-sitter-grammars/tree-sitter-markdown@^0.3.2",
         "@std/yaml": "jsr:@std/yaml@^1.0.0",
         "@std/path": "jsr:@std/path@^1.0.0",
         "@ast-grep/napi": "npm:@ast-grep/napi@^0.40.5",

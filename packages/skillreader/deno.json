@@ -3,7 +3,8 @@
     "version": "0.1.0",
     "exports": "./mod.ts",
     "imports": {
-        "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.39.0",
+        "tree-sitter": "npm:tree-sitter@^0.25.0",
+        "@tree-sitter-grammars/tree-sitter-markdown": "npm:@tree-sitter-grammars/tree-sitter-markdown@^0.3.2",
         "@zip-js/zip-js": "jsr:@zip-js/zip-js@^2.8.20"
     },
     "tasks": {

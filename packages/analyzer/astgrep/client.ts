@@ -58,17 +58,21 @@ export function scanWithRules(
     ensureLanguageRegistry();
     const matches: AstGrepMatch[] = [];
 
+    let root: ParsedRoot["root"];
+    try {
+        const ast = parse(language, content) as ParsedRoot;
+        root = ast.root;
+    } catch {
+        for (const rule of rules) {
+            for (const pattern of rule.patterns) {
+                matches.push(...regexFallbackScan(content, pattern, rule));
+            }
+        }
+        return matches;
+    }
+
     for (const rule of rules) {
         for (const pattern of rule.patterns) {
-            let root: ParsedRoot["root"];
-            try {
-                const ast = parse(language, content) as ParsedRoot;
-                root = ast.root;
-            } catch {
-                matches.push(...regexFallbackScan(content, pattern, rule));
-                continue;
-            }
-
             let nodes: ReturnType<ReturnType<typeof root>["findAll"]>;
             try {
                 nodes = root().findAll(pattern);
