@@ -11,6 +11,11 @@ export const BASH_INJECTION_RULES: AstGrepRule[] = [
             scope: "sys",
             permission: "shell",
             metadata: { command: "CMD" },
+            mappedRisks: [{
+                code: "INJECTION:command_injection",
+                severity: "warning",
+                message: "Command substitution can enable injection",
+            }],
         },
     },
 ];

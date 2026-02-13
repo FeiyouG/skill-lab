@@ -1,6 +1,5 @@
 import { Command } from "@cliffy/command";
 import { CloudStorageSkillReader, GitHubSkillReader, LocalFsSkillReader } from "@FeiyouG/skill-lab";
-import { analyzerV1 } from "@FeiyouG/skill-lab-shared";
 import { join } from "jsr:@std/path@^1.0.0";
 
 type AnalyzeOptions = {
@@ -21,7 +20,6 @@ export const analyzeCommand = new Command()
     .option("--dir <path:string>", "Subdirectory within the skill")
     .option("--github-token <token:string>", "GitHub token (overrides GITHUB_TOKEN)")
     .option("--cloud <baseUrl:string>", "Cloud storage base URL")
-    .option("--analyzer <version:string>", "Analyzer version: v2 (default) or v1")
     .option("--json", "Output as JSON")
     .action(async (options: AnalyzeOptions, path?: string) => {
         try {
@@ -29,16 +27,6 @@ export const analyzeCommand = new Command()
             const validation = await reader.exists();
             if (!validation) {
                 console.warn("Warning: SKILL.md missing or invalid frontmatter");
-            }
-
-            if (options.analyzer?.toLowerCase() === "v1") {
-                const result = await runAnalyzerV1(reader, options);
-                if (options.json) {
-                    console.log(JSON.stringify(result, null, 2));
-                    return;
-                }
-                printV1Summary(result);
-                return;
             }
 
             const { runAnalysis } = await import("@FeiyouG/skill-lab-analyzer");
@@ -70,43 +58,6 @@ export const analyzeCommand = new Command()
             Deno.exit(1);
         }
     });
-
-async function runAnalyzerV1(
-    reader: Awaited<ReturnType<typeof resolveReader>>,
-    options: AnalyzeOptions,
-) {
-    let state = analyzerV1.createInitialState({
-        skillId: "local",
-        skillVersionId: "local",
-        repoUrl: options.github ?? "",
-        commitHash: options.gitRef ?? "",
-        dir: options.dir ?? null,
-    });
-
-    for (let step = 0; step <= analyzerV1.FINAL_STEP; step += 1) {
-        const context = { skillReader: reader } as unknown as Parameters<
-            typeof analyzerV1.runStep
-        >[2];
-        state = await analyzerV1.runStep(step, state, context);
-    }
-
-    return state;
-}
-
-function printV1Summary(state: Awaited<ReturnType<typeof runAnalyzerV1>>) {
-    console.log(`\n${"=".repeat(60)}`);
-    console.log("  Analysis Results (v1)");
-    console.log(`${"=".repeat(60)}\n`);
-    console.log(`  Permissions: ${(state.permissions?.list ?? []).join(", ") || "none"}`);
-    console.log(`  Risks: ${(state.risks?.list ?? []).length}`);
-    if (state.summary) {
-        console.log(`\n  Summary: ${state.summary}`);
-    }
-    if (state.riskLevel) {
-        console.log(`  Risk Level: ${state.riskLevel}`);
-    }
-    console.log("");
-}
 
 async function resolveReader(options: AnalyzeOptions, path?: string) {
     if (options.github) {

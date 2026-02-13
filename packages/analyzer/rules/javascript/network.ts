@@ -1,4 +1,5 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
+import { DETECT_NETWORK_FETCH_RISKS } from "../shared/network-evaluators.ts";
 
 export const JAVASCRIPT_NETWORK_RULES: AstGrepRule[] = [
     {
@@ -20,6 +21,7 @@ export const JAVASCRIPT_NETWORK_RULES: AstGrepRule[] = [
                 method: "METHOD",
                 headers: "HEADERS",
             },
+            mappedRisks: [DETECT_NETWORK_FETCH_RISKS],
         },
     },
 ];

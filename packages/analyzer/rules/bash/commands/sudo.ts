@@ -11,6 +11,11 @@ export const SUDO_RULES: AstGrepRule[] = [
             scope: "sys",
             permission: "sudo",
             metadata: { command: "CMD" },
+            mappedRisks: [{
+                code: "PRIVILEGE:privilege_escalation",
+                severity: "critical",
+                message: "Privilege escalation via sudo",
+            }],
         },
     },
 ];

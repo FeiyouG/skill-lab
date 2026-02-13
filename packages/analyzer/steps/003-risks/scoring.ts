@@ -23,19 +23,22 @@ export function scoreState(state: AnalyzerState): {
     let uplift = 0;
 
     const hasExternalPost = state.risks.some((risk) =>
-        risk.type === "data_exfiltration" &&
+        risk.type === "NETWORK:data_exfiltration" &&
         ["POST", "PUT", "PATCH"].includes(String(risk.metadata?.method ?? "GET").toUpperCase())
     );
     if (hasExternalPost) uplift += SCORING.uplift.externalPost;
 
-    const hasPipeToShell = state.risks.some((risk) => risk.type === "remote_code_execution");
+    const hasPipeToShell = state.risks.some((risk) =>
+        risk.type === "NETWORK:remote_code_execution"
+    );
     if (hasPipeToShell) uplift += SCORING.uplift.pipeToShell;
 
     const criticalCount = state.risks.filter((risk) => risk.severity === "critical").length;
     if (criticalCount >= 3) uplift += SCORING.uplift.multipleCritical;
 
     const hasSecretTransfer = state.risks.some((risk) =>
-        risk.type === "credential_leak" || risk.type === "localhost_secret_exposure"
+        risk.type === "NETWORK:credential_leak" ||
+        risk.type === "NETWORK:localhost_secret_exposure"
     );
     if (hasSecretTransfer) uplift += SCORING.uplift.secretsInRequest;
 

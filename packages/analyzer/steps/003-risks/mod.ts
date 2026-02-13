@@ -1,17 +1,26 @@
 import type { AnalyzerResult, AnalyzerState } from "../../types.ts";
-import { analyzeDestructiveAndPrivilegeRisks } from "./destructive.ts";
-import { analyzeInjectionAndPromptRisks } from "./injection.ts";
-import { analyzeNetworkRisks } from "./network.ts";
 import { toAnalyzerResult } from "./output.ts";
-import { analyzeSecretRisks } from "./secrets.ts";
+import { analyzeRuleMappedRisks } from "./rule-mapped.ts";
+
+const REMOTE_SCRIPT_WARNING = "Remote script content analysis is NOT_IMPLEMENTED";
 
 export function run003Risks(state: AnalyzerState): AnalyzerResult {
     let next = state;
-    next = analyzeNetworkRisks(next);
-    next = analyzeDestructiveAndPrivilegeRisks(next);
-    next = analyzeSecretRisks(next);
-    next = analyzeInjectionAndPromptRisks(next);
+    next = analyzeRuleMappedRisks(next);
+    next = addRemoteScriptWarningIfNeeded(next);
     return toAnalyzerResult(dedupeRisks(next));
+}
+
+function addRemoteScriptWarningIfNeeded(state: AnalyzerState): AnalyzerState {
+    const hasRemoteCodeExecution = state.risks.some((risk) =>
+        risk.type === "NETWORK:remote_code_execution"
+    );
+    if (!hasRemoteCodeExecution) return state;
+    if (state.warnings.includes(REMOTE_SCRIPT_WARNING)) return state;
+    return {
+        ...state,
+        warnings: [...state.warnings, REMOTE_SCRIPT_WARNING],
+    };
 }
 
 function dedupeRisks(state: AnalyzerState): AnalyzerState {

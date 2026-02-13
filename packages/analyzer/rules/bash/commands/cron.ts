@@ -11,6 +11,11 @@ export const CRON_RULES: AstGrepRule[] = [
             scope: "sys",
             permission: "shell",
             metadata: { file: "FILE" },
+            mappedRisks: [{
+                code: "PERSISTENCE:persistence",
+                severity: "warning",
+                message: "Persistence mechanism detected",
+            }],
         },
     },
 ];

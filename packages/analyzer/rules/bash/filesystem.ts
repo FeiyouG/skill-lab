@@ -23,6 +23,11 @@ export const BASH_FILESYSTEM_RULES: AstGrepRule[] = [
             scope: "fs",
             permission: "write",
             metadata: { path: "PATH" },
+            mappedRisks: [{
+                code: "DESTRUCTIVE:destructive_behavior",
+                severity: "critical",
+                message: "Recursive delete detected",
+            }],
         },
     },
     {
@@ -35,6 +40,11 @@ export const BASH_FILESYSTEM_RULES: AstGrepRule[] = [
             scope: "fs",
             permission: "write",
             metadata: { path: "PATH" },
+            mappedRisks: [{
+                code: "DESTRUCTIVE:permission_weakening",
+                severity: "warning",
+                message: "Overly permissive chmod detected",
+            }],
         },
     },
 ];

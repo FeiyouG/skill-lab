@@ -4,7 +4,13 @@ import * as javascriptRegistration from "@ast-grep/lang-javascript";
 import * as markdownRegistration from "@ast-grep/lang-markdown";
 import * as pythonRegistration from "@ast-grep/lang-python";
 import * as typescriptRegistration from "@ast-grep/lang-typescript";
-import type { Finding, PermissionScope, Reference, ReferenceType } from "../types.ts";
+import type {
+    Finding,
+    PermissionScope,
+    Reference,
+    ReferenceType,
+    RuleRiskMapping,
+} from "../types.ts";
 
 export type AstGrepRule = {
     id: string;
@@ -16,6 +22,7 @@ export type AstGrepRule = {
         scope: PermissionScope;
         permission: string;
         metadata?: Record<string, string>;
+        mappedRisks?: RuleRiskMapping[];
     };
 };
 

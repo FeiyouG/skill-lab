@@ -1,4 +1,8 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
+import {
+    DETECT_NETWORK_FETCH_RISKS,
+    DETECT_REMOTE_CODE_EXECUTION_RISK,
+} from "../shared/network-evaluators.ts";
 
 export const BASH_NETWORK_RULES: AstGrepRule[] = [
     {
@@ -23,6 +27,7 @@ export const BASH_NETWORK_RULES: AstGrepRule[] = [
                 header: "HEADER",
                 token: "TOKEN",
             },
+            mappedRisks: [DETECT_NETWORK_FETCH_RISKS],
         },
     },
     {
@@ -38,6 +43,7 @@ export const BASH_NETWORK_RULES: AstGrepRule[] = [
                 url: "URL",
                 data: "DATA",
             },
+            mappedRisks: [DETECT_NETWORK_FETCH_RISKS],
         },
     },
     {
@@ -52,6 +58,7 @@ export const BASH_NETWORK_RULES: AstGrepRule[] = [
             metadata: {
                 command: "ARGS",
             },
+            mappedRisks: [DETECT_REMOTE_CODE_EXECUTION_RISK],
         },
     },
 ];

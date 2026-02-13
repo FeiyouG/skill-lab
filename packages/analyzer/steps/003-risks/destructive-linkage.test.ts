@@ -60,7 +60,7 @@ Deno.test("run003Risks links destructive risk to matching permission reference o
     const result = run003Risks(state);
 
     assertEquals(result.risks.length, 1);
-    assertEquals(result.risks[0].type, "destructive_behavior");
+    assertEquals(result.risks[0].type, "DESTRUCTIVE:destructive_behavior");
     assertEquals(result.risks[0].permissions, ["rm-permission"]);
 
     const rmPermission = result.permissions.find((permission) => permission.id === "rm-permission");

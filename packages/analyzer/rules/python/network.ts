@@ -1,4 +1,5 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
+import { DETECT_NETWORK_FETCH_RISKS } from "../shared/network-evaluators.ts";
 
 export const PYTHON_NETWORK_RULES: AstGrepRule[] = [
     {
@@ -19,6 +20,7 @@ export const PYTHON_NETWORK_RULES: AstGrepRule[] = [
                 url: "URL",
                 data: "DATA",
             },
+            mappedRisks: [DETECT_NETWORK_FETCH_RISKS],
         },
     },
 ];

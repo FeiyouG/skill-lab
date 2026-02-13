@@ -1,4 +1,5 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
+import { DETECT_SECRET_NAME_RISK } from "../shared/secret-evaluators.ts";
 
 export const BASH_SECRET_DETECTION_RULES: AstGrepRule[] = [
     {
@@ -11,6 +12,7 @@ export const BASH_SECRET_DETECTION_RULES: AstGrepRule[] = [
             scope: "env",
             permission: "read",
             metadata: { key: "VAR" },
+            mappedRisks: [DETECT_SECRET_NAME_RISK],
         },
     },
     {
@@ -23,6 +25,7 @@ export const BASH_SECRET_DETECTION_RULES: AstGrepRule[] = [
             scope: "env",
             permission: "read",
             metadata: { key: "VAR" },
+            mappedRisks: [DETECT_SECRET_NAME_RISK],
         },
     },
     {

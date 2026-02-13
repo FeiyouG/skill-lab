@@ -11,6 +11,11 @@ export const JAVASCRIPT_INJECTION_RULES: AstGrepRule[] = [
             scope: "sys",
             permission: "shell",
             metadata: { code: "CODE" },
+            mappedRisks: [{
+                code: "INJECTION:command_injection",
+                severity: "critical",
+                message: "Dynamic code execution detected",
+            }],
         },
     },
 ];

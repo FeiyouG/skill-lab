@@ -79,16 +79,3 @@ export const FRONTMATTER_SUPPORTED_FIELDS = [
     "metadata",
     "allowed-tools",
 ] as const;
-
-export const RISK_RULE_MAPPING: Record<string, { type: string; severity: Severity }> = {
-    "fs-rm-rf": { type: "destructive_behavior", severity: "critical" },
-    "fs-chmod-777": { type: "permission_weakening", severity: "warning" },
-    "shell-sudo": { type: "privilege_escalation", severity: "critical" },
-    "shell-cron": { type: "persistence", severity: "warning" },
-    "inject-eval": { type: "command_injection", severity: "critical" },
-    "inject-substitution": { type: "command_injection", severity: "warning" },
-    "prompt-ignore-previous": { type: "prompt_override", severity: "critical" },
-    "prompt-forget-rules": { type: "prompt_override", severity: "critical" },
-    "prompt-ignore-and-reveal": { type: "prompt_override", severity: "critical" },
-    "prompt-reveal-system-prompt": { type: "prompt_override", severity: "warning" },
-};

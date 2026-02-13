@@ -1,10 +1,10 @@
-import type { AnalyzerState, Risk, Severity } from "../../types.ts";
+import type { AnalyzerState, Risk, RiskCode, Severity } from "../../types.ts";
 import { generateRiskId } from "../../utils/id-generator.ts";
 
 export function addRisk(
     state: AnalyzerState,
     input: {
-        type: string;
+        type: RiskCode;
         severity: Severity;
         message: string;
         permissionIds: string[];

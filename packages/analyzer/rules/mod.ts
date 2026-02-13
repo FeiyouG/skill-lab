@@ -11,9 +11,10 @@ import { PROMPT_REGEX_RULES } from "./shared/prompt-injection.ts";
 import type { FileRefDiscovery } from "./shared/file-refs.ts";
 import { TEXT_FILETYPE_CONFIG, TEXT_RULES } from "./text/mod.ts";
 import { TYPESCRIPT_RULES } from "./typescript/mod.ts";
-import type { FileType } from "../types.ts";
+import type { FileType, RuleRiskInput, RuleRiskResult } from "../types.ts";
 import type { AstGrepRule } from "../astgrep/client.ts";
 import type { CodeBlock } from "./markdown/extractCodeBlocks.ts";
+import type { PromptRegexRule } from "./shared/prompt-injection.ts";
 
 // Single registry used for both file-level scanning and code-block scanning.
 export const RULES_BY_FILETYPE: Partial<Record<FileType, readonly AstGrepRule[]>> = {
@@ -47,3 +48,36 @@ export const FILETYPE_CONFIGS: Partial<
 export { SHARED_PATTERNS };
 export { PROMPT_REGEX_RULES };
 export type { FileRefDiscovery };
+
+export type RiskRuleDefinition = AstGrepRule | PromptRegexRule;
+
+const AST_GREP_RULES = Object.values(RULES_BY_FILETYPE).flatMap((rules) => rules ?? []);
+
+export const RULES_BY_ID: Map<string, RiskRuleDefinition> = new Map(
+    [
+        ...AST_GREP_RULES,
+        ...PROMPT_REGEX_RULES,
+    ].map((rule) => [rule.id, rule] as const),
+);
+
+export function evalRuleRiskMappings(
+    rule: RiskRuleDefinition,
+    input: RuleRiskInput,
+): RuleRiskResult[] {
+    const entries = "permission" in rule
+        ? (rule.permission.mappedRisks ?? [])
+        : (rule.mappedRisks ?? []);
+    const results: RuleRiskResult[] = [];
+
+    for (const entry of entries) {
+        if (typeof entry === "function") {
+            const value = entry(input);
+            if (!value) continue;
+            results.push(...(Array.isArray(value) ? value : [value]));
+            continue;
+        }
+        results.push(entry);
+    }
+
+    return results;
+}

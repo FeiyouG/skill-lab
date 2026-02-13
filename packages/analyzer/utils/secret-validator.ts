@@ -22,3 +22,8 @@ export function isSecretLikeName(value: unknown): boolean {
     const normalized = value.toLowerCase();
     return SECRET_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
+
+export function normalizeKeyCandidate(value: unknown): string {
+    if (typeof value !== "string") return "";
+    return value.replace(/[;,)]+$/, "").trim();
+}
