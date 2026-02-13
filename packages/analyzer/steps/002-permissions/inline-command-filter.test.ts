@@ -38,7 +38,6 @@ function createSkillReader(contentByPath: Record<string, string>): AnalyzerConte
 
 function createBaseState(content: string): AnalyzerState {
     return {
-        version: "test",
         skillId: "test",
         skillVersionId: "test",
         files: [{ path: "SKILL.md", contentType: "text", size: content.length }],

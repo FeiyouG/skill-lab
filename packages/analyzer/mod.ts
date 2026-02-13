@@ -1,4 +1,4 @@
-import { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION, VERSION } from "./config.ts";
+import { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
 import { run001Discovery, run002Permissions, run003Risks } from "./steps/mod.ts";
 import type { AnalyzerConfig, AnalyzerContext, AnalyzerResult, AnalyzerState } from "./types.ts";
 
@@ -40,7 +40,6 @@ export function createInitialState(input?: {
     config?: Partial<AnalyzerConfig>;
 }): AnalyzerState {
     return {
-        version: VERSION,
         skillId: input?.skillId ?? "unknown",
         skillVersionId: input?.skillVersionId ?? DEFAULT_SKILL_VERSION,
         files: [],

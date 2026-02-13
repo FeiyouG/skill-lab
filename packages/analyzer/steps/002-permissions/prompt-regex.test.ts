@@ -43,7 +43,6 @@ function createInlineContentSkillReader(
 
 function createStateWithMarkdown(content: string) {
     const state: AnalyzerState = {
-        version: "test",
         skillId: "test",
         skillVersionId: "test",
         files: [],

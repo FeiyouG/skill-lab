@@ -39,7 +39,7 @@ export class GitHubRawSkillReader extends SkillReader {
         this.dir = options.dir?.replace(/^\/+|\/+$/g, "") ?? "";
     }
 
-    async listFiles(dir?: string): Promise<SkillFile[]> {
+    async retrieveFiles(dir?: string): Promise<SkillFile[]> {
         const entries = await this.getTreeEntries();
         const prefix = buildPrefix(this.dir, dir);
         const files: SkillFile[] = [];

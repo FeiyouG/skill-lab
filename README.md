@@ -19,6 +19,16 @@ deno task test
 deno task build
 ```
 
+## Docs
+
+The documentation site lives in `docs/` and is built with VitePress via Deno tasks.
+No `npm` commands are required.
+
+```bash
+deno task docs:dev
+deno task docs:build
+```
+
 ## CLI
 
 The executable name is controlled by `CLI_NAME` in `packages/cli/src/main.ts`.

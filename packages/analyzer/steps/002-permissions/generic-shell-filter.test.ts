@@ -4,7 +4,6 @@ import { scanFileForPermissions } from "./scan-file.ts";
 
 function createInitialState(): AnalyzerState {
     return {
-        version: "test",
         skillId: "test",
         skillVersionId: "test",
         files: [],

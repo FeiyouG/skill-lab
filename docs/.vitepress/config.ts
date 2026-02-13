@@ -20,15 +20,7 @@ export default defineConfig({
                         { text: "Installation", link: "/cli/installation" },
                         {
                             text: "Commands",
-                            collapsed: true,
                             items: [
-                                { text: "search", link: "/cli/commands/search" },
-                                { text: "info", link: "/cli/commands/info" },
-                                { text: "install", link: "/cli/commands/install" },
-                                { text: "list", link: "/cli/commands/list" },
-                                { text: "update", link: "/cli/commands/update" },
-                                { text: "uninstall", link: "/cli/commands/uninstall" },
-                                { text: "config", link: "/cli/commands/config" },
                                 { text: "analyze", link: "/cli/commands/analyze" },
                             ],
                         },

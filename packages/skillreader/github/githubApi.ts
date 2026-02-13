@@ -42,7 +42,7 @@ export class GitHubApiSkillReader extends SkillReader {
         this.token = options.token;
     }
 
-    async listFiles(dir?: string): Promise<SkillFile[]> {
+    async retrieveFiles(dir?: string): Promise<SkillFile[]> {
         const entries = await this.getTreeEntries();
         const prefix = buildPrefix(this.dir, dir);
         const files: SkillFile[] = [];

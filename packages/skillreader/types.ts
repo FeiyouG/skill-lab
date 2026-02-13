@@ -40,6 +40,9 @@ export type SkillZipManifest = {
 export type SkillManifest = SkillFileManifest | SkillZipManifest;
 
 export type SkillFrontmatter = {
+    startLineNumer?: number;
+    endLineNumer?: number;
+
     name: string;
     description: string;
     license?: string;
@@ -50,15 +53,48 @@ export type SkillFrontmatter = {
 };
 
 export abstract class SkillReader {
-    abstract listFiles(dir?: string): Promise<SkillFile[]>;
+    /**
+     * A cached path to the root SKILL.md file in this skill repository
+     */
+    private skillMdPatah: string | undefined = undefined;
+
+    /**
+     * A cached list of files in this skill repository.
+     */
+    private files: SkillFile[] | undefined = undefined;
+
+    /**
+     * A cached parsed SKILL.md frontmatter.
+     */
+    private skillFrontMatter: SkillFrontmatter | undefined = undefined;
+
+    abstract retrieveFiles(dir?: string): Promise<SkillFile[]>;
     abstract readTextFile(path: string): Promise<string | null>;
     abstract readFile(path: string): Promise<ReadableStream<Uint8Array> | null>;
     abstract readManifest(): Promise<SkillManifest | null>;
 
-    public async getSkillMdPath(): Promise<string | null> {
-        const files = await this.listFiles();
+    public async listFiles(): Promise<SkillFile[]> {
+        if (!this.files) {
+            this.files = await this.retrieveFiles();
+        }
+        return this.files;
+    }
+
+    /**
+     * Return the path to SKILL.md if it exists, or throw if not.
+     */
+    public async getSkillMdPath(): Promise<string> {
+        if (this.skillMdPatah) return this.skillMdPatah;
+
+        const files = await this.retrieveFiles();
         const rootPath = files.find((file) => file.path.toLowerCase() === "skill.md");
-        return rootPath?.path ?? null;
+
+        if (!rootPath?.path) {
+            throw new Error("Invalid skill repository: SKILL.md not found");
+        }
+
+        this.skillMdPatah = rootPath.path;
+        return this.skillMdPatah;
     }
 
     /**
@@ -66,9 +102,6 @@ export abstract class SkillReader {
      */
     public async getSkillMdContent(): Promise<string> {
         const skillMdPath = await this.getSkillMdPath();
-        if (!skillMdPath) {
-            throw new Error("Invalid skill repository: SKILL.md must exist at root");
-        }
         const content = await this.readTextFile(skillMdPath);
         if (!content) {
             throw new Error("Invalid skill repository: SKILL.md is unreadable");
@@ -80,6 +113,8 @@ export abstract class SkillReader {
      * Parses SKILL.md frontmatter and guarantees required fields.
      */
     public async getSkillMdFrontmatter(): Promise<SkillFrontmatter> {
+        if (this.skillFrontMatter) return this.skillFrontMatter;
+
         const content = await this.getSkillMdContent();
         const frontmatter = await extractFrontmatter(content);
         if (!frontmatter) {
@@ -96,7 +131,12 @@ export abstract class SkillReader {
         if (!parsed.name || !parsed.description) {
             throw new Error("Invalid skill repository: frontmatter requires name and description");
         }
-        return parsed;
+
+        parsed.startLineNumer = frontmatter.startLine;
+        parsed.endLineNumer = frontmatter.endLine;
+
+        this.skillFrontMatter = parsed;
+        return this.skillFrontMatter;
     }
 
     public async validate(): Promise<{ ok: boolean; reason?: string }> {
@@ -107,10 +147,5 @@ export abstract class SkillReader {
             const message = error instanceof Error ? error.message : String(error);
             return { ok: false, reason: message };
         }
-    }
-
-    public async exists(): Promise<boolean> {
-        const result = await this.validate();
-        return result.ok;
     }
 }

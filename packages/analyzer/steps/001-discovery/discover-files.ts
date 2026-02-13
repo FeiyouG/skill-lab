@@ -26,12 +26,15 @@ export async function discoverReferencedFiles(input: {
 }): Promise<FileReference[]> {
     const discovered = new Map<string, FileReference>();
     const queue: StartQueueItem[] = [...input.startQueue];
+
+    // A set of file paths which have been processed
     const processed = new Set<string>();
     const startPaths = new Set(input.startQueue.map((item) => normalizePath(item.path)));
 
     while (queue.length > 0) {
         const current = queue.shift();
         if (!current) break;
+
         if (processed.has(current.path) || current.depth > input.maxScanDepth) continue;
         processed.add(current.path);
 

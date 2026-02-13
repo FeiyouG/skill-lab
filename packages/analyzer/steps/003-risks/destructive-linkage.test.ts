@@ -4,7 +4,6 @@ import { run003Risks } from "./mod.ts";
 
 function createInitialState(): AnalyzerState {
     return {
-        version: "test",
         skillId: "test",
         skillVersionId: "test",
         files: [],

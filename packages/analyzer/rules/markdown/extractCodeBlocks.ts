@@ -20,13 +20,15 @@ export type CodeBlock = {
 export async function extractCodeBlocks(content: string, fileType: FileType): Promise<CodeBlock[]> {
     const defaultLanguage: FileType = fileType === "text" ? "markdown" : fileType;
 
-    const blocks: CodeBlock[] = [{
-        language: defaultLanguage,
-        content,
-        startLine: 1,
-        endLine: Math.max(1, content.split("\n").length),
-        type: "content",
-    }];
+    const blocks: CodeBlock[] = [
+        {
+            language: defaultLanguage,
+            content,
+            startLine: 1,
+            endLine: Math.max(1, content.split("\n").length),
+            type: "content",
+        },
+    ];
 
     try {
         const parser = await getParser();

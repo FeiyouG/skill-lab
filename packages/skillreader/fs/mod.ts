@@ -16,7 +16,7 @@ export class LocalFsSkillReader extends SkillReader {
         this.root = options.root;
     }
 
-    async listFiles(dir?: string): Promise<SkillFile[]> {
+    async retrieveFiles(dir?: string): Promise<SkillFile[]> {
         const base = dir ? join(this.root, dir) : this.root;
         const files: SkillFile[] = [];
 

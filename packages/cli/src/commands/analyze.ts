@@ -24,15 +24,14 @@ export const analyzeCommand = new Command()
     .action(async (options: AnalyzeOptions, path?: string) => {
         try {
             const reader = await resolveReader(options, path);
-            const validation = await reader.exists();
-            if (!validation) {
-                console.warn("Warning: SKILL.md missing or invalid frontmatter");
+            const validation = await reader.validate();
+            if (!validation.ok) {
+                throw new Error(validation.reason ?? "Invalid skill repository");
             }
 
             const { runAnalysis } = await import("@FeiyouG/skill-lab-analyzer");
             const result = await runAnalysis({
                 context: { skillReader: reader },
-                skillId: "local",
             });
 
             if (options.json) {

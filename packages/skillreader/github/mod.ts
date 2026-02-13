@@ -24,8 +24,8 @@ export class GitHubSkillReader extends SkillReader {
         }
     }
 
-    listFiles(dir?: string) {
-        return this.reader.listFiles(dir);
+    retrieveFiles(dir?: string) {
+        return this.reader.retrieveFiles(dir);
     }
 
     readTextFile(path: string) {

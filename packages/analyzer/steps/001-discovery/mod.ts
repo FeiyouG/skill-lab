@@ -10,11 +10,8 @@ export async function run001Discovery(
     const files = await context.skillReader.listFiles();
     const skillMdPath = await context.skillReader.getSkillMdPath();
 
-    if (!skillMdPath) throw new Error("Invalid skill repository: SKILL.md must exist at root");
-
     // SkillReader guarantees valid and parseable frontmatter.
     const frontmatter = await context.skillReader.getSkillMdFrontmatter();
-    const skillMdContent = await context.skillReader.getSkillMdContent();
 
     const nextState: AnalyzerState = {
         ...state,
@@ -37,9 +34,6 @@ export async function run001Discovery(
             );
         }
     }
-
-    const frontmatterLineEnd = estimateFrontmatterLineEnd(skillMdContent);
-    nextState.metadata.frontmatterRangeEnd = frontmatterLineEnd;
 
     const discovered = await discoverReferencedFiles({
         startQueue: [{ path: skillMdPath, depth: 0 }],
@@ -74,13 +68,4 @@ export async function run001Discovery(
             skippedFiles: [...nextState.metadata.skippedFiles, ...filtered.skipped],
         },
     };
-}
-
-function estimateFrontmatterLineEnd(content: string): number {
-    const lines = content.split("\n");
-    if (lines[0]?.trim() !== "---") return 1;
-    for (let i = 1; i < lines.length; i += 1) {
-        if (lines[i].trim() === "---") return i + 1;
-    }
-    return Math.min(lines.length, 20);
 }

@@ -28,7 +28,7 @@ export const RULES_BY_FILETYPE: Partial<Record<FileType, readonly AstGrepRule[]>
 
 export const FILETYPE_CONFIGS: Partial<
     Record<FileType, {
-        extractCodeBlocks?: (content: string, fileType: FileType) => Promise<CodeBlock[]>;
+        extractCodeBlocks?: (content: string, filetype: FileType) => Promise<CodeBlock[]>;
         extractFileRefs?: (content: string) => FileRefDiscovery[] | Promise<FileRefDiscovery[]>;
         defaultLanguage: FileType | null;
     }>
@@ -51,11 +51,9 @@ export type { FileRefDiscovery };
 
 export type RiskRuleDefinition = AstGrepRule | PromptRegexRule;
 
-const AST_GREP_RULES = Object.values(RULES_BY_FILETYPE).flatMap((rules) => rules ?? []);
-
 export const RULES_BY_ID: Map<string, RiskRuleDefinition> = new Map(
     [
-        ...AST_GREP_RULES,
+        ...Object.values(RULES_BY_FILETYPE).flatMap((rules) => rules ?? []),
         ...PROMPT_REGEX_RULES,
     ].map((rule) => [rule.id, rule] as const),
 );

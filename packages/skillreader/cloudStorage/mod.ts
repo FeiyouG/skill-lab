@@ -35,7 +35,7 @@ export class CloudStorageSkillReader extends SkillReader {
         this.baseUrl = options.baseUrl.replace(/\/+$/, "");
     }
 
-    async listFiles(dir?: string): Promise<SkillFile[]> {
+    async retrieveFiles(dir?: string): Promise<SkillFile[]> {
         const manifest = await this.readManifest();
         if (!manifest) {
             throw new Error("Manifest not found at storage URL");

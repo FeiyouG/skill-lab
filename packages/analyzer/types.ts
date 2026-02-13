@@ -68,6 +68,14 @@ export type FileType =
     | "binary"
     | "unknown";
 
+export type CodeBlock = {
+    language: FileType;
+    content: string;
+    startLine: number;
+    endLine: number;
+    type: ReferenceType;
+};
+
 export type FileRole =
     | "entrypoint"
     | "license"
@@ -113,6 +121,7 @@ export type Risk = {
 };
 
 export type FileReference = {
+    /** The relative path of file to the root of the skill */
     path: string;
     sourceType: SourceType;
     fileType: FileType;
@@ -143,7 +152,6 @@ export type AnalyzerConfig = {
 };
 
 export type AnalyzerState = {
-    version: string;
     skillId: string;
     skillVersionId: string;
     files: SkillFile[];
@@ -157,13 +165,11 @@ export type AnalyzerState = {
         scannedFiles: string[];
         skippedFiles: Array<{ path: string; reason: string }>;
         rulesUsed: string[];
-        frontmatterRangeEnd?: number;
         config: AnalyzerConfig;
     };
 };
 
 export type AnalyzerResult = {
-    version: string;
     analyzedAt: string;
     skillId: string;
     skillVersionId: string;
