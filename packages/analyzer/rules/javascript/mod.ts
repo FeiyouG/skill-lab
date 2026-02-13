@@ -1,4 +1,6 @@
 import type { AstGrepRule } from "../../astgrep/client.ts";
+import { FileTypeConfig } from "../../types.ts";
+import { extractJsFileRefs, extractTsFileRefs } from "./extractFileRefs.ts";
 import { JAVASCRIPT_FILESYSTEM_RULES } from "./filesystem.ts";
 import { JAVASCRIPT_INJECTION_RULES } from "./injection.ts";
 import { JAVASCRIPT_NETWORK_RULES } from "./network.ts";
@@ -12,3 +14,13 @@ export const JAVASCRIPT_RULES: AstGrepRule[] = [
     ...JAVASCRIPT_SUBPROCESS_RULES,
     ...JAVASCRIPT_SECRET_DETECTION_RULES,
 ];
+
+export const JAVASCRIPT_FILETYPE_CONFIGS: FileTypeConfig = {
+    defaultLanguage: "javascript",
+    extractFileRefs: extractJsFileRefs,
+};
+
+export const TYPESCRIPT_FILETYPE_CONFIGS: FileTypeConfig = {
+    defaultLanguage: "typescript",
+    extractFileRefs: extractTsFileRefs,
+};

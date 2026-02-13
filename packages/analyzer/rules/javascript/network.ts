@@ -5,7 +5,7 @@ export const JAVASCRIPT_NETWORK_RULES: AstGrepRule[] = [
     {
         id: "net-fetch",
         description: "Detects fetch() calls",
-        language: "javascript",
+        grammar: "javascript",
         patterns: [
             "fetch($URL)",
             "fetch($URL, { method: $METHOD })",

@@ -4,7 +4,7 @@ export const DOCKER_RULES: AstGrepRule[] = [
     {
         id: "shell-docker",
         description: "Detects docker commands",
-        language: "bash",
+        grammar: "bash",
         patterns: [
             "docker run $$$ARGS",
             "docker exec $$$ARGS",
@@ -21,7 +21,7 @@ export const DOCKER_RULES: AstGrepRule[] = [
     {
         id: "shell-docker-compose",
         description: "Detects docker compose commands",
-        language: "bash",
+        grammar: "bash",
         patterns: [
             "docker-compose up $$$ARGS",
             "docker-compose down $$$ARGS",

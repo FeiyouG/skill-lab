@@ -1,12 +1,11 @@
 import { parse as parseYaml } from "jsr:@std/yaml@^1.0.0";
-import { extractFrontmatter } from "./frontmatter-parser.ts";
-
-export type SkillContentType = "text" | "binary" | "unknown";
+import { extractFrontmatter } from "./utils/frontmatter-parser.ts";
+import { FileType } from "skill-lab/shared";
 
 export type SkillFile = {
     path: string;
     size?: number;
-    contentType: SkillContentType;
+    contentType: FileType;
 };
 
 export type SkillFileManifest = {

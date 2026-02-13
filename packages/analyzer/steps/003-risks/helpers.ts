@@ -1,4 +1,5 @@
-import type { AnalyzerState, Risk, RiskCode, Severity } from "../../types.ts";
+import type { AnalyzerState } from "../../types.ts";
+import type { Risk, RiskCode, Severity } from "skill-lab/shared";
 import { generateRiskId } from "../../utils/id-generator.ts";
 
 export function addRisk(

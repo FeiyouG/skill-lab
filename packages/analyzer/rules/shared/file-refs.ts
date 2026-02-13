@@ -2,22 +2,7 @@
  * Shared types and utilities for file reference discovery across all language extractors.
  */
 
-/** How a file reference was discovered in source content. */
-export type FileRefVia =
-    | "markdown-link" // [text](path) explicit markdown link
-    | "inline-code" // `command path` inline code token
-    | "bare-path" // bare path-like string in prose
-    | "import" // import/require/from package statement
-    | "url" // URL referenced by a network command (curl, wget, fetch)
-    | "source" // shell source / . file.sh include
-    | "code-block"; // virtual code block reference within parent file
-
-/** A file path or package reference discovered in source content. */
-export type FileRefDiscovery = {
-    path: string;
-    line: number;
-    via: FileRefVia;
-};
+import { getFileType } from "skill-lab/shared";
 
 /**
  * Patterns that indicate the referenced path targets the host filesystem
@@ -45,33 +30,9 @@ export function isUrl(value: string): boolean {
  */
 export const BARE_PATH_PATTERN = /(?:\.\.?\/)?[\w./-]+\.[\w-]+/g;
 
-/**
- * File extensions considered as skill-local supporting files.
- * Used to determine if a bare token looks like a file reference.
- */
-export const KNOWN_SKILL_EXTENSIONS = new Set([
-    "md",
-    "txt",
-    "json",
-    "yaml",
-    "yml",
-    "ts",
-    "js",
-    "py",
-    "sh",
-    "bash",
-    "toml",
-    "ini",
-    "sql",
-    "csv",
-    "xml",
-]);
-
 /** Returns true if the value looks like a file path (not a command or word). */
 export function looksLikePath(value: string): boolean {
     if (/^\.?\.?\//.test(value)) return true;
     if (value.includes("/")) return true;
-    const ext = value.split(".").pop()?.toLowerCase();
-    if (!ext) return false;
-    return KNOWN_SKILL_EXTENSIONS.has(ext) && /[a-zA-Z]/.test(value);
+    return getFileType(value) != "unknown";
 }

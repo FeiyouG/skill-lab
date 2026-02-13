@@ -4,7 +4,7 @@ export const BASH_DESTRUCTIVE_RULES: AstGrepRule[] = [
     {
         id: "destructive-format",
         description: "Detects disk format commands",
-        language: "bash",
+        grammar: "bash",
         patterns: ["mkfs $DEVICE", "format $DEVICE"],
         permission: {
             tool: "format",
@@ -16,7 +16,7 @@ export const BASH_DESTRUCTIVE_RULES: AstGrepRule[] = [
     {
         id: "destructive-config-write",
         description: "Detects config file overwrite",
-        language: "bash",
+        grammar: "bash",
         patterns: ["echo $VALUE > $FILE"],
         permission: {
             tool: "write",

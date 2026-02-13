@@ -4,7 +4,7 @@ export const JAVASCRIPT_INJECTION_RULES: AstGrepRule[] = [
     {
         id: "inject-eval",
         description: "Detects eval-style execution",
-        language: "javascript",
+        grammar: "javascript",
         patterns: ["eval($CODE)", "new Function($CODE)", "exec($CODE)"],
         permission: {
             tool: "eval",

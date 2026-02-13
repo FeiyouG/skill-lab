@@ -1,5 +1,6 @@
 import { evalRuleRiskMappings, RULES_BY_ID } from "../../rules/mod.ts";
-import type { AnalyzerState, Finding, Permission, RiskCode } from "../../types.ts";
+import type { AnalyzerState } from "../../types.ts";
+import type { Finding, Permission, RiskCode } from "skill-lab/shared";
 import { addRisk } from "./helpers.ts";
 
 const PROMPT_CATEGORY = "PROMPT";

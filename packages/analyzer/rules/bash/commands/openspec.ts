@@ -4,7 +4,7 @@ export const OPENSPEC_RULES: AstGrepRule[] = [
     {
         id: "shell-openspec",
         description: "Detects openspec commands",
-        language: "bash",
+        grammar: "bash",
         patterns: ["openspec $SUB $$$ARGS"],
         permission: {
             tool: "openspec",

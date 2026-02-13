@@ -1,5 +1,5 @@
 import type { SkillFile } from "@FeiyouG/skill-lab";
-import type { FileReference } from "../../types.ts";
+import type { FileReference } from "skill-lab/shared";
 
 export function filterScanQueue(input: {
     queue: FileReference[];

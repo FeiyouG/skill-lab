@@ -1,6 +1,8 @@
 import { Command } from "@cliffy/command";
 import { CloudStorageSkillReader, GitHubSkillReader, LocalFsSkillReader } from "@FeiyouG/skill-lab";
 import { join } from "jsr:@std/path@^1.0.0";
+import { AstGrepClient } from "../../../analyzer/astgrep/client.ts";
+import { TreesitterClient } from "../../../analyzer/treesiter/client.ts";
 
 type AnalyzeOptions = {
     github?: string;
@@ -31,7 +33,11 @@ export const analyzeCommand = new Command()
 
             const { runAnalysis } = await import("@FeiyouG/skill-lab-analyzer");
             const result = await runAnalysis({
-                context: { skillReader: reader },
+                context: {
+                    skillReader: reader,
+                    treesitterClient: new TreesitterClient(),
+                    astgrepClient: new AstGrepClient(),
+                },
             });
 
             if (options.json) {

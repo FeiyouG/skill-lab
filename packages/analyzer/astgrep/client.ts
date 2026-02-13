@@ -10,12 +10,12 @@ import type {
     Reference,
     ReferenceType,
     RuleRiskMapping,
-} from "../types.ts";
+} from "skill-lab/shared";
 
 export type AstGrepRule = {
     id: string;
     description: string;
-    language: "javascript" | "typescript" | "python" | "bash" | "markdown";
+    grammar: "javascript" | "typescript" | "python" | "bash" | "markdown";
     patterns: string[];
     permission: {
         tool: string;
@@ -33,22 +33,6 @@ export type AstGrepMatch = {
     extracted: Record<string, unknown>;
 };
 
-type ParsedNode = {
-    range: () => {
-        start: { line: number };
-        end: { line: number };
-    };
-    getMatch: (name: string) => { text: () => string } | null;
-};
-
-type ParsedRoot = {
-    root: () => {
-        findAll: (pattern: string) => ParsedNode[];
-    };
-};
-
-let isLanguageRegistryInitialized = false;
-
 type DynamicLangRegistration = {
     libraryPath: string;
     extensions: string[];
@@ -57,156 +41,137 @@ type DynamicLangRegistration = {
     expandoChar?: string;
 };
 
-export function scanWithRules(
-    content: string,
-    language: AstGrepRule["language"],
-    rules: AstGrepRule[],
-): AstGrepMatch[] {
-    ensureLanguageRegistry();
-    const matches: AstGrepMatch[] = [];
+export class AstGrepClient {
+    private isLanguageRegistryInitialized = false;
+    private PARSE_CACHE_BY_GRAMMAR: Partial<
+        Record<AstGrepRule["grammar"] | "markdown", Map<number, Map<number, ReturnType<typeof parse>>>>
+    > = {};
 
-    let root: ParsedRoot["root"];
-    try {
-        const ast = parse(language, content) as ParsedRoot;
-        root = ast.root;
-    } catch {
-        for (const rule of rules) {
-            for (const pattern of rule.patterns) {
-                matches.push(...regexFallbackScan(content, pattern, rule));
-            }
+    /** Parse content for direct AST traversal using kind/composite rules. */
+    public parse(
+        language: AstGrepRule["grammar"] | "markdown",
+        content: string,
+    ): ReturnType<typeof parse> {
+        this.ensureLanguageRegistry();
+        const rootByLen = this.getParseCache(language);
+        const len = content.length;
+        const rootByHash = rootByLen.get(len);
+        if (rootByHash) {
+            const hash = this.hashContent(content);
+            const cached = rootByHash.get(hash);
+            if (cached) return cached;
         }
+
+        const ast = parse(language, content);
+        const hash = this.hashContent(content);
+        const bucket = rootByLen.get(len) ?? new Map<number, ReturnType<typeof parse>>();
+        bucket.set(hash, ast);
+        rootByLen.set(len, bucket);
+
+        return ast;
+    }
+
+    public scanWithRules(
+        content: string,
+        language: AstGrepRule["grammar"],
+        rules: AstGrepRule[],
+    ): AstGrepMatch[] {
+        this.ensureLanguageRegistry();
+        const matches: AstGrepMatch[] = [];
+
+        try {
+            const ast = this.parse(language, content);
+            const root = ast.root();
+
+            for (const rule of rules) {
+                for (const pattern of rule.patterns) {
+                    const nodes = root.findAll(pattern);
+
+                    for (const node of nodes) {
+                        const range = node.range();
+                        const extracted: Record<string, unknown> = { pattern };
+
+                        if (rule.permission.metadata) {
+                            for (const [key, metaVar] of Object.entries(rule.permission.metadata)) {
+                                const varNode = node.getMatch(metaVar);
+                                if (varNode) {
+                                    extracted[key] = this.stripQuotes(varNode.text());
+                                }
+                            }
+                        }
+
+                        matches.push({
+                            ruleId: rule.id,
+                            line: range.start.line + 1,
+                            lineEnd: range.end.line + 1,
+                            extracted,
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            throw new Error(`Failed to match rules: ${error}`);
+        }
+
         return matches;
     }
 
-    for (const rule of rules) {
-        for (const pattern of rule.patterns) {
-            let nodes: ReturnType<ReturnType<typeof root>["findAll"]>;
-            try {
-                nodes = root().findAll(pattern);
-            } catch {
-                matches.push(...regexFallbackScan(content, pattern, rule));
-                continue;
-            }
-
-            for (const node of nodes) {
-                const range = node.range();
-                const extracted: Record<string, unknown> = { pattern };
-
-                if (rule.permission.metadata) {
-                    for (const [key, metaVar] of Object.entries(rule.permission.metadata)) {
-                        const varNode = node.getMatch(metaVar);
-                        if (varNode) {
-                            extracted[key] = stripQuotes(varNode.text());
-                        }
-                    }
-                }
-
-                matches.push({
-                    ruleId: rule.id,
-                    line: range.start.line + 1,
-                    lineEnd: range.end.line + 1,
-                    extracted,
-                });
-            }
-        }
+    public matchesToFindings(
+        file: string,
+        type: ReferenceType,
+        matches: AstGrepMatch[],
+        referencedBy?: Reference,
+    ): Finding[] {
+        return matches.map((match) => ({
+            ruleId: match.ruleId,
+            reference: {
+                file,
+                line: match.line,
+                lineEnd: match.lineEnd,
+                type,
+                referencedBy,
+            },
+            extracted: match.extracted,
+        }));
     }
 
-    return matches;
-}
-
-export function matchesToFindings(
-    file: string,
-    type: ReferenceType,
-    matches: AstGrepMatch[],
-    referencedBy?: Reference,
-): Finding[] {
-    return matches.map((match) => ({
-        ruleId: match.ruleId,
-        reference: {
-            file,
-            line: match.line,
-            lineEnd: match.lineEnd,
-            type,
-            referencedBy,
-        },
-        extracted: match.extracted,
-    }));
-}
-
-function ensureLanguageRegistry(): void {
-    if (isLanguageRegistryInitialized) return;
-    registerDynamicLanguage({
-        bash: bashRegistration.default as unknown as DynamicLangRegistration,
-        javascript: javascriptRegistration.default as unknown as DynamicLangRegistration,
-        typescript: typescriptRegistration.default as unknown as DynamicLangRegistration,
-        python: pythonRegistration.default as unknown as DynamicLangRegistration,
-        markdown: markdownRegistration.default as unknown as DynamicLangRegistration,
-    });
-    isLanguageRegistryInitialized = true;
-}
-
-function stripQuotes(value: string): string {
-    return value
-        .replace(/^['"`]/, "")
-        .replace(/['"`]$/, "")
-        .replace(/[;,)]+$/, "")
-        .trim();
-}
-
-function regexFallbackScan(content: string, pattern: string, rule: AstGrepRule): AstGrepMatch[] {
-    const compiled = compilePattern(pattern);
-    if (!compiled) return [];
-
-    const lines = content.split("\n");
-    const matches: AstGrepMatch[] = [];
-
-    for (let i = 0; i < lines.length; i += 1) {
-        const line = lines[i];
-        const result = line.match(compiled.regex);
-        if (!result) continue;
-
-        const extracted: Record<string, unknown> = { pattern };
-        for (let j = 0; j < compiled.variables.length; j += 1) {
-            extracted[compiled.variables[j]] = stripQuotes(result[j + 1] ?? "");
-        }
-
-        if (rule.permission.metadata) {
-            for (const [field, metaVar] of Object.entries(rule.permission.metadata)) {
-                if (extracted[metaVar] !== undefined) {
-                    extracted[field] = extracted[metaVar];
-                }
-            }
-        }
-
-        matches.push({
-            ruleId: rule.id,
-            line: i + 1,
-            lineEnd: i + 1,
-            extracted,
+    private ensureLanguageRegistry(): void {
+        if (this.isLanguageRegistryInitialized) return;
+        registerDynamicLanguage({
+            bash: bashRegistration.default as unknown as DynamicLangRegistration,
+            javascript: javascriptRegistration.default as unknown as DynamicLangRegistration,
+            typescript: typescriptRegistration.default as unknown as DynamicLangRegistration,
+            python: pythonRegistration.default as unknown as DynamicLangRegistration,
+            markdown: markdownRegistration.default as unknown as DynamicLangRegistration,
         });
+        this.isLanguageRegistryInitialized = true;
     }
 
-    return matches;
-}
+    private stripQuotes(value: string): string {
+        return value
+            .replace(/^['"`]/, "")
+            .replace(/['"`]$/, "")
+            .replace(/[;,)]+$/, "")
+            .trim();
+    }
 
-function compilePattern(pattern: string): { regex: RegExp; variables: string[] } | null {
-    const variables: string[] = [];
-    const source = pattern
-        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-        .replace(/\\\$\\\$\\\$(\w+)/g, (_, name: string) => {
-            variables.push(name);
-            return "(.+)";
-        })
-        .replace(/\\\$(\w+)/g, (_, name: string) => {
-            variables.push(name);
-            return "([^\\s]+)";
-        })
-        .replace(/\s+/g, "\\s+");
+    private getParseCache(
+        language: AstGrepRule["grammar"] | "markdown",
+    ): Map<number, Map<number, ReturnType<typeof parse>>> {
+        if (!this.PARSE_CACHE_BY_GRAMMAR[language]) {
+            this.PARSE_CACHE_BY_GRAMMAR[language] =
+                new Map<number, Map<number, ReturnType<typeof parse>>>();
+        }
+        return this.PARSE_CACHE_BY_GRAMMAR[language]!;
+    }
 
-    if (!source) return null;
-    const startsWithWord = /^\w/.test(source);
-    const endsWithWord = /\w$/.test(source);
-    const prefix = startsWithWord ? "\\b" : "";
-    const suffix = endsWithWord ? "\\b" : "";
-    return { regex: new RegExp(`${prefix}${source}${suffix}`, "i"), variables };
+    private hashContent(content: string): number {
+        // FNV-1a 32-bit (fast, non-cryptographic)
+        let hash = 0x811c9dc5;
+        for (let i = 0; i < content.length; i++) {
+            hash ^= content.charCodeAt(i);
+            hash = Math.imul(hash, 0x01000193);
+        }
+        return hash >>> 0;
+    }
 }

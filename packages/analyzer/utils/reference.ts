@@ -1,4 +1,4 @@
-import type { Reference } from "../types.ts";
+import type { Reference } from "skill-lab/shared";
 
 export function toReferenceString(reference: Reference): string {
     if (reference.lineEnd && reference.lineEnd !== reference.line) {

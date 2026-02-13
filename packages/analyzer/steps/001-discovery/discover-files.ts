@@ -1,10 +1,11 @@
 import type { SkillFile } from "@FeiyouG/skill-lab";
-import type { CodeBlock } from "../../rules/markdown/extractCodeBlocks.ts";
+import { getFileRole, getFileType } from "skill-lab/shared";
+
+import type { AnalyzerContext, CodeBlock } from "../../types.ts";
 import { FILETYPE_CONFIGS, RULES_BY_FILETYPE } from "../../rules/mod.ts";
 import { isHostFsPath, isUrl } from "../../rules/shared/file-refs.ts";
-import type { FileRefDiscovery } from "../../rules/shared/file-refs.ts";
-import type { FileReference, FileType, Reference } from "../../types.ts";
-import { getFileRole, getFileType } from "../../utils/file-classifier.ts";
+import type { FileRefDiscovery } from "../../types.ts";
+import type { FileReference, FileType, Reference } from "skill-lab/shared";
 import { encodeCodeBlockPath } from "../../utils/code-block-path.ts";
 
 type StartQueueItem = { path: string; depth: number; referencedBy?: Reference };
@@ -18,12 +19,15 @@ type StartQueueItem = { path: string; depth: number; referencedBy?: Reference };
  * - Enqueues discovered local markdown/text files for recursive discovery
  * - Emits virtual code-block FileReferences for step 002 scanning
  */
-export async function discoverReferencedFiles(input: {
-    startQueue: StartQueueItem[];
-    allFiles: SkillFile[];
-    readTextFile: (path: string) => Promise<string | null>;
-    maxScanDepth: number;
-}): Promise<FileReference[]> {
+export async function discoverReferencedFiles(
+    context: AnalyzerContext,
+    input: {
+        startQueue: StartQueueItem[];
+        allFiles: SkillFile[];
+        readTextFile: (path: string) => Promise<string | null>;
+        maxScanDepth: number;
+    },
+): Promise<FileReference[]> {
     const discovered = new Map<string, FileReference>();
     const queue: StartQueueItem[] = [...input.startQueue];
 
@@ -42,10 +46,25 @@ export async function discoverReferencedFiles(input: {
         if (!content) continue;
 
         const currentFileType = getFileType(current.path);
-        const blocks = await extractBlocksForDiscovery(content, currentFileType);
+
+        const blocks = await FILETYPE_CONFIGS[currentFileType]?.extractCodeBlocks?.(
+            context,
+            content,
+        ) ?? [];
+
+        blocks.push({
+            language: currentFileType,
+            content,
+            startLine: 1,
+            endLine: Math.max(1, content.split("\n").length),
+            type: "content",
+        });
 
         for (const block of blocks) {
-            const blockRefs = await extractRefsForBlock(block);
+            const blockRefs =
+                await FILETYPE_CONFIGS[block.language]?.extractFileRefs?.(context, block.content) ??
+                    [];
+
             for (const blockRef of blockRefs) {
                 const absoluteRef: FileRefDiscovery = {
                     ...blockRef,
@@ -148,30 +167,6 @@ export async function discoverReferencedFiles(input: {
     }
 
     return Array.from(discovered.values());
-}
-
-async function extractBlocksForDiscovery(
-    content: string,
-    fileType: FileType,
-): Promise<CodeBlock[]> {
-    const config = FILETYPE_CONFIGS[fileType];
-    if (config?.extractCodeBlocks) {
-        return await config.extractCodeBlocks(content, fileType);
-    }
-
-    return [{
-        language: fileType,
-        content,
-        startLine: 1,
-        endLine: Math.max(1, content.split("\n").length),
-        type: "content",
-    }];
-}
-
-async function extractRefsForBlock(block: CodeBlock): Promise<FileRefDiscovery[]> {
-    const blockExtractor = FILETYPE_CONFIGS[block.language]?.extractFileRefs;
-    if (!blockExtractor) return [];
-    return await blockExtractor(block.content);
 }
 
 function shouldCreateCodeBlockReference(

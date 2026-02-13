@@ -4,7 +4,7 @@ export const BASH_INJECTION_RULES: AstGrepRule[] = [
     {
         id: "inject-substitution",
         description: "Detects shell command substitution",
-        language: "bash",
+        grammar: "bash",
         patterns: ["$($CMD)", "`$CMD`"],
         permission: {
             tool: "bash",

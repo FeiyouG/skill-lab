@@ -8,7 +8,7 @@ export const BASH_NETWORK_RULES: AstGrepRule[] = [
     {
         id: "net-curl",
         description: "Detects curl usage",
-        language: "bash",
+        grammar: "bash",
         patterns: [
             "curl $URL",
             "curl -X $METHOD $URL",
@@ -33,7 +33,7 @@ export const BASH_NETWORK_RULES: AstGrepRule[] = [
     {
         id: "net-wget",
         description: "Detects wget usage",
-        language: "bash",
+        grammar: "bash",
         patterns: ["wget $URL", "wget --post-data=$DATA $URL"],
         permission: {
             tool: "wget",
@@ -49,7 +49,7 @@ export const BASH_NETWORK_RULES: AstGrepRule[] = [
     {
         id: "net-pipe-shell",
         description: "Detects network pipe to shell",
-        language: "bash",
+        grammar: "bash",
         patterns: ["curl $$$ARGS | bash", "curl $$$ARGS | sh", "wget $$$ARGS | bash"],
         permission: {
             tool: "bash",

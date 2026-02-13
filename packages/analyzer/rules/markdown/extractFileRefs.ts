@@ -1,193 +1,114 @@
 /**
- * Tree-sitter-based file reference extractor for Markdown content.
+ * AST-based file reference extractor for Markdown content.
  *
- * Extracts file path references using the parsed AST so that:
- * - Fenced code block content is skipped entirely (prevents false positives
- *   from directory tree examples, code snippets, etc.)
- * - Markdown links [text](path) are tagged as "markdown-link"
- * - Inline code tokens `cmd path` are tagged as "inline-code"
- * - Bare paths in prose text are tagged as "bare-path"
+ * Extracts file path references using:
+ * - tree-sitter block grammar + MARKDOWN_QUERY.INLINE to find inline nodes
+ * - tree-sitter inline grammar for inline_link, code_span, text nodes
+ * - regex fallback if AST parsing fails
  */
 
-import {
-    BARE_PATH_PATTERN,
-    type FileRefDiscovery,
-    isUrl,
-    looksLikePath,
-} from "../shared/file-refs.ts";
+import { BARE_PATH_PATTERN, isUrl, looksLikePath } from "../shared/file-refs.ts";
+import type { AnalyzerContext, FileRefDiscovery } from "../../types.ts";
+import { MARKDOWN_INLINE_QUERY, MARKDOWN_QUERY } from "./astTypes.ts";
 
-type SyntaxNodeLike = {
+type TsNode = {
     type: string;
     text: string;
-    startPosition: { row: number };
-    children: SyntaxNodeLike[];
+    startPosition: { row: number; column: number };
+    children: TsNode[];
 };
 
-let parserInstance: { parse: (content: string) => { rootNode: SyntaxNodeLike } } | null = null;
+type TsCapture = { name: string; node: unknown };
+type TsMatch = { captures: TsCapture[] };
 
-async function getParser(): Promise<
-    { parse: (content: string) => { rootNode: SyntaxNodeLike } }
-> {
-    if (parserInstance) return parserInstance;
-
-    const [{ default: Parser }, markdownModule] = await Promise.all([
-        import("tree-sitter"),
-        import("@tree-sitter-grammars/tree-sitter-markdown"),
-    ]);
-
-    const parser = new Parser();
-    parser.setLanguage(
-        ((markdownModule as { default?: unknown }).default ?? markdownModule) as Parameters<
-            typeof parser.setLanguage
-        >[0],
-    );
-
-    parserInstance = parser;
-    return parser;
-}
-
-/**
- * Extracts file references from Markdown content using tree-sitter.
- * Skips fenced code block content to avoid false positives from example code.
- *
- * Falls back to regex-based extraction if tree-sitter is unavailable.
- */
-export async function extractMarkdownFileRefs(content: string): Promise<FileRefDiscovery[]> {
+export async function extractMarkdownFileRefs(
+    context: AnalyzerContext,
+    content: string,
+): Promise<FileRefDiscovery[]> {
     try {
-        const parser = await getParser();
-        const tree = parser.parse(content);
         const refs: FileRefDiscovery[] = [];
+        const blockTree = await context.treesitterClient.parse("markdown", content);
 
-        walkNode(tree.rootNode, refs, false);
+        const inlineNodeQuery = await context.treesitterClient.createQuery(
+            "markdown",
+            MARKDOWN_QUERY.INLINE,
+        );
+        const inlineParser = await context.treesitterClient.getParser("markdown-inline");
+
+        const linkDestQuery = await context.treesitterClient.createQuery(
+            "markdown-inline",
+            MARKDOWN_INLINE_QUERY.INLINE_LINK_DEST,
+        );
+        const codeSpanQuery = await context.treesitterClient.createQuery(
+            "markdown-inline",
+            MARKDOWN_INLINE_QUERY.CODE_SPAN,
+        );
+        const textQuery = await context.treesitterClient.createQuery(
+            "markdown-inline",
+            MARKDOWN_INLINE_QUERY.TEXT,
+        );
+
+        for (const inlineMatch of inlineNodeQuery.matches(blockTree.rootNode) as TsMatch[]) {
+            for (const inlineCapture of inlineMatch.captures) {
+                if (inlineCapture.name !== "inline") continue;
+                const inlineNode = inlineCapture.node as TsNode;
+                const blockLine = inlineNode.startPosition.row;
+
+                const inlineTree = inlineParser.parse(inlineNode.text);
+                const inlineRoot = inlineTree.rootNode;
+
+                for (const match of linkDestQuery.matches(inlineRoot) as TsMatch[]) {
+                    for (const capture of match.captures) {
+                        if (capture.name !== "dest") continue;
+                        const destNode = capture.node as TsNode;
+                        const path = destNode.text.trim();
+                        if (!path || isUrl(path) || path.startsWith("#")) continue;
+                        refs.push({ path, line: blockLine + 1, via: "markdown-link" });
+                    }
+                }
+
+                for (const match of codeSpanQuery.matches(inlineRoot) as TsMatch[]) {
+                    for (const capture of match.captures) {
+                        if (capture.name !== "code") continue;
+                        const codeNode = capture.node as TsNode;
+                        const snippet = codeNode.text.replace(/^`+/, "").replace(/`+$/, "").trim();
+                        if (!snippet) continue;
+                        const parts = snippet.split(/\s+/);
+                        for (let pi = 0; pi < parts.length; pi++) {
+                            const part = parts[pi];
+                            if (pi === 0 && !part.includes("/") && !part.includes(".")) continue;
+                            if (looksLikePath(part) && !isUrl(part)) {
+                                refs.push({ path: part, line: blockLine + 1, via: "inline-code" });
+                            }
+                        }
+                    }
+                }
+
+                for (const match of textQuery.matches(inlineRoot) as TsMatch[]) {
+                    for (const capture of match.captures) {
+                        if (capture.name !== "text") continue;
+                        const textNode = capture.node as TsNode;
+                        BARE_PATH_PATTERN.lastIndex = 0;
+                        for (const pathMatch of textNode.text.matchAll(BARE_PATH_PATTERN)) {
+                            const path = pathMatch[0].trim();
+                            if (!path || isUrl(path) || !looksLikePath(path)) continue;
+                            refs.push({ path, line: blockLine + 1, via: "bare-path" });
+                        }
+                    }
+                }
+            }
+        }
 
         return deduplicateRefs(refs);
     } catch {
-        // Fallback to regex-based extraction if tree-sitter is unavailable
+        // Fallback to regex-based extraction if AST parsing is unavailable
         return extractMarkdownFileRefsRegex(content);
     }
 }
 
 /**
- * Recursively walks the markdown AST collecting file references.
- * @param node - current AST node
- * @param refs - accumulator
- * @param inFencedBlock - whether we are currently inside a fenced code block
- */
-function walkNode(
-    node: SyntaxNodeLike,
-    refs: FileRefDiscovery[],
-    inFencedBlock: boolean,
-): void {
-    // Skip fenced code block content entirely
-    if (node.type === "fenced_code_block") {
-        return;
-    }
-
-    // Inline code spans: `command arg` — check non-first tokens for paths
-    if (node.type === "code_span") {
-        if (!inFencedBlock) {
-            extractFromInlineCode(node, refs);
-        }
-        return;
-    }
-
-    // Inline links: [text](url_or_path)
-    if (node.type === "inline_link" || node.type === "link") {
-        if (!inFencedBlock) {
-            extractFromLink(node, refs);
-        }
-        return;
-    }
-
-    // Autolinks: <https://...> or <path>
-    if (node.type === "uri_autolink" || node.type === "email_autolink") {
-        // URLs in autolinks — skip (not skill file refs)
-        return;
-    }
-
-    // Text in paragraphs and other prose: scan for bare paths
-    if ((node.type === "text" || node.type === "paragraph") && !inFencedBlock) {
-        if (node.type === "text") {
-            extractBarePathsFromText(node, refs);
-        }
-    }
-
-    // Recurse into children
-    for (const child of node.children) {
-        walkNode(child, refs, inFencedBlock);
-    }
-}
-
-function extractFromLink(node: SyntaxNodeLike, refs: FileRefDiscovery[]): void {
-    // Find the link_destination child node
-    const dest = findChildByType(node, "link_destination");
-    if (!dest) return;
-
-    const path = dest.text.trim();
-    if (!path || isUrl(path)) return;
-    // Skip anchor links
-    if (path.startsWith("#")) return;
-
-    refs.push({
-        path,
-        line: node.startPosition.row + 1,
-        via: "markdown-link",
-    });
-}
-
-function extractFromInlineCode(node: SyntaxNodeLike, refs: FileRefDiscovery[]): void {
-    // Strip backticks from code span text
-    const snippet = node.text.replace(/^`+/, "").replace(/`+$/, "").trim();
-    if (!snippet) return;
-
-    const parts = snippet.split(/\s+/);
-    for (let pi = 0; pi < parts.length; pi++) {
-        const part = parts[pi];
-        // Skip first token if it's a bare command word (no slash, no extension)
-        if (pi === 0 && !part.includes("/") && !part.includes(".")) continue;
-        if (looksLikePath(part) && !isUrl(part)) {
-            refs.push({
-                path: part,
-                line: node.startPosition.row + 1,
-                via: "inline-code",
-            });
-        }
-    }
-}
-
-function extractBarePathsFromText(node: SyntaxNodeLike, refs: FileRefDiscovery[]): void {
-    const text = node.text;
-    const lineOffset = node.startPosition.row;
-
-    // Reset lastIndex before using global regex
-    BARE_PATH_PATTERN.lastIndex = 0;
-
-    for (const match of text.matchAll(BARE_PATH_PATTERN)) {
-        const path = match[0].trim();
-        if (!path || isUrl(path)) continue;
-        if (!looksLikePath(path)) continue;
-
-        // Calculate line number within the node's text
-        const textBefore = text.slice(0, match.index ?? 0);
-        const linesBeforeMatch = textBefore.split("\n").length - 1;
-
-        refs.push({
-            path,
-            line: lineOffset + linesBeforeMatch + 1,
-            via: "bare-path",
-        });
-    }
-}
-
-function findChildByType(node: SyntaxNodeLike, type: string): SyntaxNodeLike | undefined {
-    return node.children.find((child) => child.type === type);
-}
-
-/**
  * Deduplicate refs, preferring higher-specificity discovery methods.
  * Priority: markdown-link > inline-code > bare-path
- * If the same path is found via multiple methods on the same line,
- * only the highest-priority entry is kept.
  */
 function deduplicateRefs(refs: FileRefDiscovery[]): FileRefDiscovery[] {
     const priority: Record<string, number> = {
@@ -199,7 +120,6 @@ function deduplicateRefs(refs: FileRefDiscovery[]): FileRefDiscovery[] {
         "source": 2,
     };
 
-    // Group by path+line, keep only the highest priority via
     const best = new Map<string, FileRefDiscovery>();
     for (const ref of refs) {
         const key = `${ref.path}:${ref.line}`;
@@ -213,8 +133,7 @@ function deduplicateRefs(refs: FileRefDiscovery[]): FileRefDiscovery[] {
 }
 
 /**
- * Regex-based fallback for when tree-sitter is unavailable.
- * Uses line-by-line scanning with fenced block tracking via simple regex.
+ * Regex-based fallback for when AST parsing is unavailable.
  */
 function extractMarkdownFileRefsRegex(content: string): FileRefDiscovery[] {
     const refs: FileRefDiscovery[] = [];
@@ -228,14 +147,12 @@ function extractMarkdownFileRefsRegex(content: string): FileRefDiscovery[] {
         const line = lines[i];
         const lineNo = i + 1;
 
-        // Track fenced code block boundaries
         if (/^[ \t]*(`{3,}|~{3,})/.test(line)) {
             inFencedBlock = !inFencedBlock;
             continue;
         }
         if (inFencedBlock) continue;
 
-        // Markdown links
         markdownLink.lastIndex = 0;
         for (const match of line.matchAll(markdownLink)) {
             const path = match[1]?.trim();
@@ -244,15 +161,11 @@ function extractMarkdownFileRefsRegex(content: string): FileRefDiscovery[] {
             }
         }
 
-        // Inline code — check all tokens for path-like values
-        // The first token is included if it looks like a path (e.g. `scripts/extract.py`)
-        // rather than a simple command name (e.g. `git`). Subsequent tokens are always checked.
         inlineCode.lastIndex = 0;
         for (const match of line.matchAll(inlineCode)) {
             const parts = match[1].trim().split(/\s+/);
             for (let pi = 0; pi < parts.length; pi++) {
                 const part = parts[pi];
-                // Skip first token if it's a bare command word (no slash, no extension)
                 if (pi === 0 && !part.includes("/") && !part.includes(".")) continue;
                 if (looksLikePath(part) && !isUrl(part)) {
                     refs.push({ path: part, line: lineNo, via: "inline-code" });
@@ -260,9 +173,6 @@ function extractMarkdownFileRefsRegex(content: string): FileRefDiscovery[] {
             }
         }
 
-        // Bare paths — scan the line with markdown link syntax masked out
-        // to avoid re-picking up paths already found as markdown links,
-        // and to avoid picking up URLs from link destinations.
         const maskedLine = line.replace(/\[[^\]]*\]\([^)]*\)/g, "");
         BARE_PATH_PATTERN.lastIndex = 0;
         for (const match of maskedLine.matchAll(BARE_PATH_PATTERN)) {

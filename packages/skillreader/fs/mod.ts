@@ -1,8 +1,9 @@
 import { join, relative } from "jsr:@std/path@^1.0.0";
-import { contentTypeFromPath, isProbablyText } from "../utils.ts";
+import { isProbablyText } from "../utils/mod.ts";
 import type { SkillFile } from "../types.ts";
 import { SkillReader } from "../types.ts";
 import { parseSkillManifest } from "../manifest.ts";
+import { getFileType } from "skill-lab/shared";
 
 export type LocalFsSkillReaderOptions = {
     root: string;
@@ -26,7 +27,7 @@ export class LocalFsSkillReader extends SkillReader {
             files.push({
                 path: relPath.replace(/\\/g, "/"),
                 size: entry.size,
-                contentType: contentTypeFromPath(relPath),
+                contentType: getFileType(relPath),
             });
         }
 
@@ -35,7 +36,7 @@ export class LocalFsSkillReader extends SkillReader {
 
     async readTextFile(path: string): Promise<string | null> {
         const fullPath = join(this.root, path);
-        const contentType = contentTypeFromPath(path);
+        const contentType = getFileType(path);
         if (contentType === "binary") return null;
         try {
             const data = await Deno.readFile(fullPath);

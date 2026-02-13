@@ -1,4 +1,4 @@
-import type { RuleRiskMapping } from "../../types.ts";
+import type { RuleRiskMapping } from "skill-lab/shared";
 
 export type PromptRegexRule = {
     id: string;

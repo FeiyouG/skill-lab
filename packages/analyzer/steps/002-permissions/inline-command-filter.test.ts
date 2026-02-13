@@ -1,5 +1,7 @@
 import { assertEquals } from "@std/assert";
 import type { SkillFile, SkillManifest } from "@FeiyouG/skill-lab";
+import { AstGrepClient } from "../../astgrep/client.ts";
+import { TreesitterClient } from "../../treesiter/client.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { run002Permissions } from "./mod.ts";
 
@@ -66,6 +68,14 @@ function createBaseState(content: string): AnalyzerState {
     };
 }
 
+function createContext(contentByPath: Record<string, string>): AnalyzerContext {
+    return {
+        skillReader: createSkillReader(contentByPath),
+        treesitterClient: new TreesitterClient(),
+        astgrepClient: new AstGrepClient(),
+    };
+}
+
 Deno.test("run002Permissions ignores prose inline tokens as bash commands", async () => {
     const line =
         "- **Frontmatter** (YAML): Contains `name` and `description` fields (required), plus optional fields like `license`, `metadata`, and `compatibility`.";
@@ -85,9 +95,7 @@ Deno.test("run002Permissions ignores prose inline tokens as bash commands", asyn
         },
     });
 
-    const next = await run002Permissions(state, {
-        skillReader: createSkillReader({ "SKILL.md": line }),
-    });
+    const next = await run002Permissions(state, createContext({ "SKILL.md": line }));
 
     const bashLike = next.permissions.filter((permission) =>
         permission.scope === "sys" || permission.tool === "source"
@@ -113,9 +121,7 @@ Deno.test("run002Permissions keeps true inline command detection", async () => {
         },
     });
 
-    const next = await run002Permissions(state, {
-        skillReader: createSkillReader({ "SKILL.md": line }),
-    });
+    const next = await run002Permissions(state, createContext({ "SKILL.md": line }));
 
     const gitPermissions = next.permissions.filter((permission) => permission.tool === "git");
     assertEquals(gitPermissions.length > 0, true);

@@ -4,7 +4,7 @@ export const EVAL_RULES: AstGrepRule[] = [
     {
         id: "shell-eval",
         description: "Detects eval execution",
-        language: "bash",
+        grammar: "bash",
         patterns: ["eval $CMD", 'eval "$CMD"', "eval '$CMD'"],
         permission: {
             tool: "eval",
@@ -16,7 +16,7 @@ export const EVAL_RULES: AstGrepRule[] = [
     {
         id: "shell-sh-c",
         description: "Detects sh -c execution",
-        language: "bash",
+        grammar: "bash",
         patterns: ["sh -c $CMD", 'sh -c "$CMD"', "sh -c '$CMD'"],
         permission: {
             tool: "sh",
@@ -28,7 +28,7 @@ export const EVAL_RULES: AstGrepRule[] = [
     {
         id: "shell-bash-c",
         description: "Detects bash -c execution",
-        language: "bash",
+        grammar: "bash",
         patterns: ["bash -c $CMD", 'bash -c "$CMD"', "bash -c '$CMD'"],
         permission: {
             tool: "bash",
@@ -40,7 +40,7 @@ export const EVAL_RULES: AstGrepRule[] = [
     {
         id: "shell-source",
         description: "Detects source command",
-        language: "bash",
+        grammar: "bash",
         patterns: ["source $FILE", ". $FILE"],
         permission: {
             tool: "source",

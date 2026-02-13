@@ -1,5 +1,16 @@
 import { assertEquals } from "@std/assert";
 import { extractMarkdownFileRefs } from "./extractFileRefs.ts";
+import { AstGrepClient } from "../../astgrep/client.ts";
+import { TreesitterClient } from "../../treesiter/client.ts";
+import type { AnalyzerContext } from "../../types.ts";
+
+function makeContext(): AnalyzerContext {
+    return {
+        astgrepClient: new AstGrepClient(),
+        treesitterClient: new TreesitterClient(),
+        skillReader: null as unknown as AnalyzerContext["skillReader"],
+    };
+}
 
 Deno.test("extractMarkdownFileRefs - extracts markdown links", async () => {
     const content = `
@@ -8,7 +19,7 @@ Deno.test("extractMarkdownFileRefs - extracts markdown links", async () => {
 See [the workflows guide](references/workflows.md) for details.
 Also check [output patterns](references/output-patterns.md).
 `;
-    const refs = await extractMarkdownFileRefs(content);
+    const refs = await extractMarkdownFileRefs(makeContext(), content);
     const paths = refs.map((r) => r.path);
     const vias = refs.map((r) => r.via);
 
@@ -37,7 +48,7 @@ bigquery-skill/
 
 Some text after the block.
 `;
-    const refs = await extractMarkdownFileRefs(content);
+    const refs = await extractMarkdownFileRefs(makeContext(), content);
     const paths = refs.map((r) => r.path);
 
     // Paths inside fenced block should NOT be extracted
@@ -60,7 +71,7 @@ skill-creator/
 
 Real link: [see this](references/real.md)
 `;
-    const refs = await extractMarkdownFileRefs(content);
+    const refs = await extractMarkdownFileRefs(makeContext(), content);
     const paths = refs.map((r) => r.path);
 
     // Files inside fenced block should NOT be extracted
@@ -73,7 +84,7 @@ Real link: [see this](references/real.md)
 
 Deno.test("extractMarkdownFileRefs - filters out URLs in markdown links", async () => {
     const content = `See [Apache License](https://www.apache.org/licenses/LICENSE-2.0) for terms.`;
-    const refs = await extractMarkdownFileRefs(content);
+    const refs = await extractMarkdownFileRefs(makeContext(), content);
     const paths = refs.map((r) => r.path);
 
     // URLs should be filtered out (they're not skill-local file refs)
@@ -81,8 +92,8 @@ Deno.test("extractMarkdownFileRefs - filters out URLs in markdown links", async 
 });
 
 Deno.test("extractMarkdownFileRefs - extracts inline code paths", async () => {
-    const content = "Run the extraction script: \`scripts/extract.py arg1\` to process the file.";
-    const refs = await extractMarkdownFileRefs(content);
+    const content = "Run the extraction script: `scripts/extract.py arg1` to process the file.";
+    const refs = await extractMarkdownFileRefs(makeContext(), content);
     const paths = refs.map((r) => r.path);
     const vias = refs.map((r) => r.via);
 
@@ -98,7 +109,7 @@ Deno.test("extractMarkdownFileRefs - extracts inline code paths", async () => {
 
 Deno.test("extractMarkdownFileRefs - does not extract anchor links", async () => {
     const content = `See [the section](#installation) for details.`;
-    const refs = await extractMarkdownFileRefs(content);
+    const refs = await extractMarkdownFileRefs(makeContext(), content);
     const paths = refs.map((r) => r.path);
 
     assertEquals(paths.includes("#installation"), false);

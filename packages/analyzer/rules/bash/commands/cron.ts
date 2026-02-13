@@ -4,7 +4,7 @@ export const CRON_RULES: AstGrepRule[] = [
     {
         id: "shell-cron",
         description: "Detects cron persistence",
-        language: "bash",
+        grammar: "bash",
         patterns: ["crontab $FILE", "echo $ENTRY | crontab -"],
         permission: {
             tool: "crontab",

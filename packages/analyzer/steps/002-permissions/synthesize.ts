@@ -1,4 +1,5 @@
-import type { AnalyzerState, Permission } from "../../types.ts";
+import type { AnalyzerState } from "../../types.ts";
+import type { Permission } from "skill-lab/shared";
 
 export function synthesizePermissions(state: AnalyzerState): AnalyzerState {
     const map = new Map<string, Permission>();

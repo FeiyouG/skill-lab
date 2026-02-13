@@ -1,7 +1,7 @@
-import type { AnalyzerConfig, PermissionScope, Severity } from "./types.ts";
-import { DEFAULT_SKILL_VERSION, VERSION } from "./version.ts";
+import { PermissionScope, Severity } from "skill-lab/shared";
+import type { AnalyzerConfig } from "./types.ts";
 
-export { DEFAULT_SKILL_VERSION, VERSION };
+export const DEFAULT_SKILL_VERSION = "0.0.1";
 
 export const DEFAULT_CONFIG: AnalyzerConfig = {
     maxFileSize: 1_000_000,

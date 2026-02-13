@@ -5,8 +5,8 @@ export const BASH_SECRET_DETECTION_RULES: AstGrepRule[] = [
     {
         id: "secret-bash-env-read-plain",
         description: "Detects bash env var read with $VAR",
-        language: "bash",
-        patterns: ["echo $$VAR", "printf $$VAR"],
+        grammar: "bash",
+        patterns: ["echo \\$$VAR", "printf \\$$VAR"],
         permission: {
             tool: "env",
             scope: "env",
@@ -18,8 +18,8 @@ export const BASH_SECRET_DETECTION_RULES: AstGrepRule[] = [
     {
         id: "secret-bash-env-read-braced",
         description: "Detects bash env var read with ${VAR}",
-        language: "bash",
-        patterns: ["echo ${$VAR}", "printf ${$VAR}"],
+        grammar: "bash",
+        patterns: ["echo \\${$VAR}", "printf \\${$VAR}"],
         permission: {
             tool: "env",
             scope: "env",
@@ -31,7 +31,7 @@ export const BASH_SECRET_DETECTION_RULES: AstGrepRule[] = [
     {
         id: "secret-bash-env-write",
         description: "Detects export env var write",
-        language: "bash",
+        grammar: "bash",
         patterns: ["export $KEY=$VALUE"],
         permission: {
             tool: "env",

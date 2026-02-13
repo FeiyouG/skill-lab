@@ -3,6 +3,7 @@
     "nodeModulesDir": "auto",
     "workspace": [
         "./docs",
+        "./packages/shared",
         "./packages/skillreader",
         "./packages/analyzer",
         "./packages/cli"
@@ -23,10 +24,13 @@
     },
     "lint": {
         "rules": {
-            "tags": ["recommended"]
+            "tags": ["recommended"],
+            "exclude": ["no-inner-declarations"]
         }
     },
     "tasks": {
+        "shared:check": "deno task --cwd packages/shared check",
+        "shared:test": "deno task --cwd packages/shared test",
         "skillreader:check": "deno task --cwd packages/skillreader check",
         "skillreader:test": "deno task --cwd packages/skillreader test",
         "analyzer:check": "deno task --cwd packages/analyzer check",
@@ -49,7 +53,8 @@
         "precommit": "deno fmt && deno task check && deno task test"
     },
     "imports": {
-        "@FeiyouG/skill-lab": "./packages/skillreader/mod.ts",
+        "@FeiyouG/skill-lab-skill-reader": "./packages/skillreader/mod.ts",
+        "@FeiyouG/skill-lab-shared": "./packages/analyzer/mod.ts",
         "@FeiyouG/skill-lab-analyzer": "./packages/analyzer/mod.ts",
         "@std/assert": "jsr:@std/assert@^1.0.0",
         "@std/testing": "jsr:@std/testing@^1.0.0"

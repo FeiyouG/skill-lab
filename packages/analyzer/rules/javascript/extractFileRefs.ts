@@ -6,78 +6,127 @@
  * - require("specifier") → via: "import"
  * - URL string literals used in fetch/axios/XMLHttpRequest → via: "url"
  * - Host filesystem paths in fs.readFile / fs.writeFile / open calls → via: "bare-path"
+ *
+ * Uses ast-grep AST traversal; `context` is accepted for interface consistency
+ * (AST client is synchronous for JS/TS and does not require async setup).
  */
 
-import { type FileRefDiscovery, isHostFsPath, isUrl } from "../shared/file-refs.ts";
+import { isHostFsPath, isUrl } from "../shared/file-refs.ts";
+import type { AnalyzerContext, FileRefDiscovery } from "../../types.ts";
+import { JS_NODE } from "./astTypes.ts";
 
-/** Matches: import ... from "specifier" or import("specifier") */
-const IMPORT_FROM_PATTERN = /\bimport\s*(?:[\w{},\s*]+\bfrom\b\s*)?["'`]([^"'`\n]+)["'`]/g;
-
-/** Matches: export ... from "specifier" */
-const EXPORT_FROM_PATTERN = /\bexport\s+(?:[\w{},\s*]+\bfrom\b\s*)["'`]([^"'`\n]+)["'`]/g;
-
-/** Matches: require("specifier") */
-const REQUIRE_PATTERN = /\brequire\s*\(\s*["'`]([^"'`\n]+)["'`]\s*\)/g;
-
-/** Matches: fetch("url"), axios.get("url"), etc. */
-const URL_CALL_PATTERN =
-    /\b(?:fetch|axios\.(?:get|post|put|delete|patch|head)|XMLHttpRequest|request|got|superagent)\s*[\.(]\s*["'`](https?:\/\/[^"'`\n]+)["'`]/g;
-
-/** Matches: fs.readFile/writeFile/appendFile/open with host path */
-const FS_PATH_PATTERN =
-    /\bfs\.(?:readFile|writeFile|appendFile|open|access|stat|unlink|mkdir|rmdir|rename|copyFile)\s*\(\s*["'`]([^"'`\n]+)["'`]/g;
-
-/**
- * Extracts file references from JavaScript/TypeScript source content.
- */
-export function extractJsFileRefs(content: string): FileRefDiscovery[] {
+function extractJsLikeFileRefs(
+    lang: "javascript" | "typescript",
+    context: AnalyzerContext,
+    content: string,
+): FileRefDiscovery[] {
     const refs: FileRefDiscovery[] = [];
-    const lines = content.split("\n");
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const lineNo = i + 1;
+    const ast = context.astgrepClient.parse(lang, content);
+    const root = ast.root();
 
-        // Skip comment lines
-        if (/^\s*\/\//.test(line)) continue;
-
-        // import ... from "specifier"
-        IMPORT_FROM_PATTERN.lastIndex = 0;
-        for (const match of line.matchAll(IMPORT_FROM_PATTERN)) {
-            const specifier = match[1]?.trim();
-            if (specifier) refs.push({ path: specifier, line: lineNo, via: "import" });
+    // ── import_statement ────────────────────────────────────────────────────
+    const importNodes = root.findAll({ rule: { kind: JS_NODE.IMPORT_STATEMENT } });
+    for (const node of importNodes) {
+        const sourceNode = node.field("source");
+        if (!sourceNode) continue;
+        const fragmentNode = sourceNode.find({ rule: { kind: JS_NODE.STRING_FRAGMENT } });
+        const specifier = fragmentNode?.text() ?? "";
+        if (specifier) {
+            refs.push({ path: specifier, line: node.range().start.line + 1, via: "import" });
         }
+    }
 
-        // export ... from "specifier"
-        EXPORT_FROM_PATTERN.lastIndex = 0;
-        for (const match of line.matchAll(EXPORT_FROM_PATTERN)) {
-            const specifier = match[1]?.trim();
-            if (specifier) refs.push({ path: specifier, line: lineNo, via: "import" });
+    // ── export_statement (re-exports only — export ... from "…") ────────────
+    const exportNodes = root.findAll({ rule: { kind: JS_NODE.EXPORT_STATEMENT } });
+    for (const node of exportNodes) {
+        const sourceNode = node.field("source");
+        if (!sourceNode) continue; // no `from` clause → local export, skip
+        const fragmentNode = sourceNode.find({ rule: { kind: JS_NODE.STRING_FRAGMENT } });
+        const specifier = fragmentNode?.text() ?? "";
+        if (specifier) {
+            refs.push({ path: specifier, line: node.range().start.line + 1, via: "import" });
         }
+    }
 
-        // require("specifier")
-        REQUIRE_PATTERN.lastIndex = 0;
-        for (const match of line.matchAll(REQUIRE_PATTERN)) {
-            const specifier = match[1]?.trim();
-            if (specifier) refs.push({ path: specifier, line: lineNo, via: "import" });
+    // ── require("specifier") ────────────────────────────────────────────────
+    const requireNodes = root.findAll({
+        rule: {
+            kind: JS_NODE.CALL_EXPRESSION,
+            has: {
+                field: "function",
+                regex: "^require$",
+                stopBy: "neighbor",
+            },
+        },
+    });
+    for (const node of requireNodes) {
+        const argsNode = node.field("arguments");
+        if (!argsNode) continue;
+        const fragmentNode = argsNode.find({ rule: { kind: JS_NODE.STRING_FRAGMENT } });
+        const specifier = fragmentNode?.text() ?? "";
+        if (specifier) {
+            refs.push({ path: specifier, line: node.range().start.line + 1, via: "import" });
         }
+    }
 
-        // fetch/axios URLs
-        URL_CALL_PATTERN.lastIndex = 0;
-        for (const match of line.matchAll(URL_CALL_PATTERN)) {
-            const url = match[1]?.trim();
-            if (url && isUrl(url)) refs.push({ path: url, line: lineNo, via: "url" });
+    // ── fetch/axios/etc. URL calls ──────────────────────────────────────────
+    const urlCallNodes = root.findAll({
+        rule: {
+            kind: JS_NODE.CALL_EXPRESSION,
+            has: {
+                field: "function",
+                regex:
+                    "^(?:fetch|axios\\.(?:get|post|put|delete|patch|head)|XMLHttpRequest|request|got|superagent)$",
+                stopBy: "neighbor",
+            },
+        },
+    });
+    for (const node of urlCallNodes) {
+        const argsNode = node.field("arguments");
+        if (!argsNode) continue;
+        const fragmentNode = argsNode.find({ rule: { kind: JS_NODE.STRING_FRAGMENT } });
+        const url = fragmentNode?.text() ?? "";
+        if (url && isUrl(url)) {
+            refs.push({ path: url, line: node.range().start.line + 1, via: "url" });
         }
+    }
 
-        // fs calls with host paths
-        FS_PATH_PATTERN.lastIndex = 0;
-        for (const match of line.matchAll(FS_PATH_PATTERN)) {
-            const path = match[1]?.trim();
-            if (path && isHostFsPath(path)) {
-                refs.push({ path, line: lineNo, via: "bare-path" });
-            }
+    // ── fs.* calls with host paths ──────────────────────────────────────────
+    const fsCallNodes = root.findAll({
+        rule: {
+            kind: JS_NODE.CALL_EXPRESSION,
+            has: {
+                field: "function",
+                regex:
+                    "^fs\\.(?:readFile|writeFile|appendFile|open|access|stat|unlink|mkdir|rmdir|rename|copyFile)$",
+                stopBy: "neighbor",
+            },
+        },
+    });
+    for (const node of fsCallNodes) {
+        const argsNode = node.field("arguments");
+        if (!argsNode) continue;
+        const fragmentNode = argsNode.find({ rule: { kind: JS_NODE.STRING_FRAGMENT } });
+        const path = fragmentNode?.text() ?? "";
+        if (path && isHostFsPath(path)) {
+            refs.push({ path, line: node.range().start.line + 1, via: "bare-path" });
         }
     }
 
     return refs;
+}
+
+export function extractJsFileRefs(
+    context: AnalyzerContext,
+    content: string,
+): FileRefDiscovery[] {
+    return extractJsLikeFileRefs("javascript", context, content);
+}
+
+export function extractTsFileRefs(
+    context: AnalyzerContext,
+    content: string,
+): FileRefDiscovery[] {
+    return extractJsLikeFileRefs("typescript", context, content);
 }

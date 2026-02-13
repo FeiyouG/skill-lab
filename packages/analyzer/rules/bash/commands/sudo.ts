@@ -4,7 +4,7 @@ export const SUDO_RULES: AstGrepRule[] = [
     {
         id: "shell-sudo",
         description: "Detects sudo usage",
-        language: "bash",
+        grammar: "bash",
         patterns: ["sudo $CMD $$$ARGS"],
         permission: {
             tool: "sudo",

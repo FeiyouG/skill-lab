@@ -1,4 +1,4 @@
-import type { DynamicRuleRiskMapping } from "../../types.ts";
+import type { DynamicRuleRiskMapping } from "skill-lab/shared";
 import { isSecretLikeName, normalizeKeyCandidate } from "../../utils/secret-validator.ts";
 
 export const DETECT_SECRET_NAME_RISK: DynamicRuleRiskMapping = ({ finding }) => {

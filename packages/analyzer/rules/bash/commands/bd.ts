@@ -4,7 +4,7 @@ export const BD_RULES: AstGrepRule[] = [
     {
         id: "shell-bd",
         description: "Detects bd task commands",
-        language: "bash",
+        grammar: "bash",
         patterns: [
             "bd ready",
             "bd show $ID",

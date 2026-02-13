@@ -1,4 +1,5 @@
-import type { AnalyzerContext, AnalyzerState, Permission, Reference } from "../../types.ts";
+import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
+import type { Permission, Reference } from "skill-lab/shared";
 import { PROMPT_REGEX_RULES } from "../../rules/mod.ts";
 import { RULES_BY_FILETYPE } from "../../rules/mod.ts";
 import { isLikelyInlineBashCommand } from "../../rules/bash/inline-command-classifier.ts";
@@ -69,7 +70,7 @@ export async function run002Permissions(
         }
 
         for (const scanTarget of scanTargets) {
-            next = await scanFileForPermissions({
+            next = scanFileForPermissions(context, {
                 state: next,
                 fileRef,
                 scanPath: scanTarget.scanPath,
@@ -128,7 +129,7 @@ async function resolveScanTargets(
         const line = lines[decoded.startLine - 1] ?? "";
         const snippets = extractInlineSnippets(line);
         const likelyCommands = snippets.filter((snippet) =>
-            isLikelyInlineBashCommand({ snippet, lineContext: line })
+            isLikelyInlineBashCommand(context, { snippet, lineContext: line })
         );
 
         return likelyCommands.map((snippet) => ({

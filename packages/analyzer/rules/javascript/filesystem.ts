@@ -4,7 +4,7 @@ export const JAVASCRIPT_FILESYSTEM_RULES: AstGrepRule[] = [
     {
         id: "fs-read-js",
         description: "Detects JS file reads",
-        language: "javascript",
+        grammar: "javascript",
         patterns: ["Deno.readTextFile($FILE)", "Deno.readFile($FILE)", "readFileSync($FILE)"],
         permission: {
             tool: "read",
@@ -16,7 +16,7 @@ export const JAVASCRIPT_FILESYSTEM_RULES: AstGrepRule[] = [
     {
         id: "fs-write-js",
         description: "Detects JS file writes",
-        language: "javascript",
+        grammar: "javascript",
         patterns: ["Deno.writeTextFile($FILE, $CONTENT)", "Deno.writeFile($FILE, $CONTENT)"],
         permission: {
             tool: "write",

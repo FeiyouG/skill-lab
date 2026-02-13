@@ -1,10 +1,21 @@
 import { assertEquals } from "@std/assert";
 import { discoverReferencedFiles } from "./discover-files.ts";
 import type { SkillFile } from "@FeiyouG/skill-lab";
+import { AstGrepClient } from "../../astgrep/client.ts";
+import { TreesitterClient } from "../../treesiter/client.ts";
+import type { AnalyzerContext } from "../../types.ts";
 
 // Minimal SkillFile for test use
 function makeSkillFile(path: string): SkillFile {
     return { path } as unknown as SkillFile;
+}
+
+function makeContext(): AnalyzerContext {
+    return {
+        astgrepClient: new AstGrepClient(),
+        treesitterClient: new TreesitterClient(),
+        skillReader: null as unknown as AnalyzerContext["skillReader"],
+    };
 }
 
 const SKILL_MD_CONTENT = `---
@@ -36,10 +47,10 @@ Deno.test(
             makeSkillFile("references/workflows.md"),
         ];
 
-        const discovered = await discoverReferencedFiles({
+        const discovered = await discoverReferencedFiles(makeContext(), {
             startQueue: [{ path: "SKILL.md", depth: 0 }],
             allFiles,
-            readTextFile: (path): Promise<string | null> => {
+            readTextFile: (path: string): Promise<string | null> => {
                 if (path === "SKILL.md") return Promise.resolve(SKILL_MD_CONTENT);
                 if (path === "references/workflows.md") {
                     return Promise.resolve("# Workflows\nNo external refs here.");
@@ -65,10 +76,10 @@ Deno.test(
             makeSkillFile("SKILL.md"),
         ];
 
-        const discovered = await discoverReferencedFiles({
+        const discovered = await discoverReferencedFiles(makeContext(), {
             startQueue: [{ path: "SKILL.md", depth: 0 }],
             allFiles,
-            readTextFile: (path): Promise<string | null> => {
+            readTextFile: (path: string): Promise<string | null> => {
                 if (path === "SKILL.md") return Promise.resolve(SKILL_MD_CONTENT);
                 return Promise.resolve(null);
             },
@@ -88,10 +99,10 @@ Deno.test(
     async () => {
         const allFiles: SkillFile[] = [makeSkillFile("SKILL.md")];
 
-        const discovered = await discoverReferencedFiles({
+        const discovered = await discoverReferencedFiles(makeContext(), {
             startQueue: [{ path: "SKILL.md", depth: 0 }],
             allFiles,
-            readTextFile: (path): Promise<string | null> => {
+            readTextFile: (path: string): Promise<string | null> => {
                 if (path === "SKILL.md") return Promise.resolve(SKILL_MD_CONTENT);
                 return Promise.resolve(null);
             },
@@ -114,10 +125,10 @@ Deno.test(
         const content = `# Skill\n\nRun: \`cat ~/config.yaml\`\n`;
         const allFiles: SkillFile[] = [makeSkillFile("SKILL.md")];
 
-        const discovered = await discoverReferencedFiles({
+        const discovered = await discoverReferencedFiles(makeContext(), {
             startQueue: [{ path: "SKILL.md", depth: 0 }],
             allFiles,
-            readTextFile: (path): Promise<string | null> => {
+            readTextFile: (path: string): Promise<string | null> => {
                 if (path === "SKILL.md") return Promise.resolve(content);
                 return Promise.resolve(null);
             },
@@ -152,10 +163,10 @@ scripts/package_skill.py <path/to/skill-folder>
             makeSkillFile("scripts/package_skill.py"),
         ];
 
-        const discovered = await discoverReferencedFiles({
+        const discovered = await discoverReferencedFiles(makeContext(), {
             startQueue: [{ path: "SKILL.md", depth: 0 }],
             allFiles,
-            readTextFile: (path): Promise<string | null> => {
+            readTextFile: (path: string): Promise<string | null> => {
                 if (path === "SKILL.md") return Promise.resolve(content);
                 if (path === "scripts/package_skill.py") return Promise.resolve("print('ok')");
                 return Promise.resolve(null);

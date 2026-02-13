@@ -4,7 +4,7 @@ export const GH_RULES: AstGrepRule[] = [
     {
         id: "shell-gh",
         description: "Detects GitHub CLI commands",
-        language: "bash",
+        grammar: "bash",
         patterns: [
             "gh pr $$$ARGS",
             "gh issue $$$ARGS",

@@ -1,8 +1,9 @@
-import { contentTypeFromPath, isProbablyText } from "../utils.ts";
+import { isProbablyText } from "../utils/mod.ts";
 import type { SkillFile, SkillManifest, SkillZipManifest, ZipManifestFile } from "../types.ts";
 import { SkillReader } from "../types.ts";
 import { isZipManifest, parseSkillManifest } from "../manifest.ts";
 import { decompressDeflateStream, fetchRangeStream } from "../utils/http-range.ts";
+import { getFileType } from "skill-lab/shared";
 
 /**
  * ZIP local file header signature (magic number: 0x04034b50).
@@ -51,12 +52,12 @@ export class CloudStorageSkillReader extends SkillReader {
             .map((file) => ({
                 path: file.path,
                 size: file.size,
-                contentType: contentTypeFromPath(file.path),
+                contentType: getFileType(file.path),
             }));
     }
 
     async readTextFile(path: string): Promise<string | null> {
-        const contentType = contentTypeFromPath(path);
+        const contentType = getFileType(path);
         if (contentType === "binary") return null;
 
         const stream = await this.readFile(path);

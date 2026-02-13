@@ -4,7 +4,7 @@ export const GENERIC_SHELL_RULES: AstGrepRule[] = [
     {
         id: "shell-generic-command",
         description: "Catches unrecognized shell command invocations",
-        language: "bash",
+        grammar: "bash",
         patterns: ["$TOOL $$$ARGS"],
         permission: {
             tool: "detected",

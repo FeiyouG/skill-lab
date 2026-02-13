@@ -4,7 +4,7 @@ export const JAVASCRIPT_SUBPROCESS_RULES: AstGrepRule[] = [
     {
         id: "shell-subprocess-js",
         description: "Detects JS subprocess execution",
-        language: "javascript",
+        grammar: "javascript",
         patterns: ["Deno.Command($CMD)", "spawn($CMD)", "exec($CMD)"],
         permission: {
             tool: "subprocess",

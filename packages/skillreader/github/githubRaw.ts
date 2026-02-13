@@ -1,4 +1,4 @@
-import { contentTypeFromPath, isProbablyText } from "../utils.ts";
+import { isProbablyText } from "../utils/mod.ts";
 import type { SkillFile } from "../types.ts";
 import { SkillReader } from "../types.ts";
 import { parseSkillManifest } from "../manifest.ts";
@@ -8,6 +8,7 @@ import {
     normalizeRelativePath,
     parseGitHubRepo,
 } from "./utils.ts";
+import { getFileType } from "skill-lab/shared";
 
 type GitHubTreeEntry = {
     path: string;
@@ -52,7 +53,7 @@ export class GitHubRawSkillReader extends SkillReader {
             files.push({
                 path: relativePath,
                 size: entry.size,
-                contentType: contentTypeFromPath(relativePath),
+                contentType: getFileType(relativePath),
             });
         }
 
@@ -60,7 +61,7 @@ export class GitHubRawSkillReader extends SkillReader {
     }
 
     async readTextFile(path: string): Promise<string | null> {
-        if (contentTypeFromPath(path) === "binary") return null;
+        if (getFileType(path) === "binary") return null;
         const stream = await this.readFile(path);
         if (!stream) return null;
         const buffer = new Uint8Array(await new Response(stream).arrayBuffer());

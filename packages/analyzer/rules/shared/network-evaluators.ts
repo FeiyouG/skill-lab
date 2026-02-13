@@ -3,7 +3,7 @@ import type {
     Permission,
     RuleRiskResult,
     StaticRuleRiskMapping,
-} from "../../types.ts";
+} from "skill-lab/shared";
 import { classifyDestination, parseUrlFromUnknown } from "../../utils/url-parser.ts";
 
 const WRITE_METHODS = new Set(["POST", "PUT", "PATCH"]);

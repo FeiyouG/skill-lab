@@ -2,20 +2,9 @@ import { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
 import { run001Discovery, run002Permissions, run003Risks } from "./steps/mod.ts";
 import type { AnalyzerConfig, AnalyzerContext, AnalyzerResult, AnalyzerState } from "./types.ts";
 
-export type {
-    AnalyzerConfig,
-    AnalyzerResult,
-    AnalyzerState,
-    FileReference,
-    Finding,
-    Permission,
-    PermissionScope,
-    Reference,
-    ReferenceType,
-    Risk,
-    Severity,
-} from "./types.ts";
-export { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION, VERSION } from "./config.ts";
+export type { AnalyzerConfig, AnalyzerResult, AnalyzerState } from "./types.ts";
+
+export { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
 
 export async function runAnalysis(input: {
     context: AnalyzerContext;

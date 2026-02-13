@@ -1,4 +1,4 @@
-import { scanWithRules } from "../../astgrep/mod.ts";
+import type { AnalyzerContext } from "../../types.ts";
 import { looksLikePath } from "../shared/file-refs.ts";
 import { BASH_COMMAND_RULES } from "./commands/mod.ts";
 
@@ -43,6 +43,7 @@ const KNOWN_COMMAND_TOOLS = new Set(
 );
 
 export function isLikelyInlineBashCommand(
+    context: AnalyzerContext,
     input: { snippet: string; lineContext?: string },
 ): boolean {
     const snippet = normalizeInlineSnippet(input.snippet);
@@ -51,7 +52,7 @@ export function isLikelyInlineBashCommand(
     const tokens = snippet.split(/\s+/).filter(Boolean);
     if (tokens.length === 1 && looksLikePath(snippet)) return false;
 
-    if (matchesSpecificBashCommandRule(snippet)) return true;
+    if (matchesSpecificBashCommandRule(context, snippet)) return true;
 
     const firstToken = tokens[0]?.toLowerCase() ?? "";
     const hasContextVerb = CONTEXT_VERB_PATTERN.test(input.lineContext ?? "");
@@ -69,8 +70,8 @@ export function isLikelyInlineBashCommand(
     return false;
 }
 
-function matchesSpecificBashCommandRule(snippet: string): boolean {
-    const matches = scanWithRules(snippet, "bash", SPECIFIC_COMMAND_RULES);
+function matchesSpecificBashCommandRule(context: AnalyzerContext, snippet: string): boolean {
+    const matches = context.astgrepClient.scanWithRules(snippet, "bash", SPECIFIC_COMMAND_RULES);
     return matches.length > 0;
 }
 

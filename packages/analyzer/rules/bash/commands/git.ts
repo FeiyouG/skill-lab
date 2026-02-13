@@ -4,7 +4,7 @@ export const GIT_RULES: AstGrepRule[] = [
     {
         id: "shell-git",
         description: "Detects git commands",
-        language: "bash",
+        grammar: "bash",
         patterns: [
             "git status",
             "git add $PATH",

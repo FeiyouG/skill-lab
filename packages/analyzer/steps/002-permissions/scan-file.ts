@@ -1,6 +1,6 @@
-import type { AnalyzerState, FileReference, Permission, PermissionScope } from "../../types.ts";
+import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
+import type { FileReference, Permission, PermissionScope } from "skill-lab/shared";
 import type { AstGrepMatch } from "../../astgrep/client.ts";
-import { matchesToFindings, scanWithRules } from "../../astgrep/mod.ts";
 import { RULES_BY_FILETYPE } from "../../rules/mod.ts";
 import { generatePermissionId } from "../../utils/id-generator.ts";
 
@@ -40,14 +40,17 @@ const SHELL_RESERVED_WORDS = new Set([
 /**
  * Scans a text-like file and returns updated state with permissions and findings.
  */
-export function scanFileForPermissions(input: {
-    state: AnalyzerState;
-    fileRef: FileReference;
-    scanPath: string;
-    content: string;
-    lineOffset?: number;
-    referenceType?: "content" | "script" | "inline";
-}): AnalyzerState {
+export function scanFileForPermissions(
+    context: AnalyzerContext,
+    input: {
+        state: AnalyzerState;
+        fileRef: FileReference;
+        scanPath: string;
+        content: string;
+        lineOffset?: number;
+        referenceType?: "content" | "script" | "inline";
+    },
+): AnalyzerState {
     const {
         state,
         fileRef,
@@ -71,13 +74,13 @@ export function scanFileForPermissions(input: {
         };
     }
 
-    const scanLanguage = rules[0].language;
-    const matches = scanWithRules(content, scanLanguage, rules);
+    const scanLanguage = rules[0].grammar;
+    const matches = context.astgrepClient.scanWithRules(content, scanLanguage, rules);
     const lines = content.split("\n");
     const filteredMatches = matches.filter((match) =>
         shouldKeepMatchForBlock(match, lineOffset + 1, lines)
     );
-    const blockFindings = matchesToFindings(
+    const blockFindings = context.astgrepClient.matchesToFindings(
         scanPath,
         referenceType,
         filteredMatches.map((match) => ({

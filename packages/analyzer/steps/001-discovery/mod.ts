@@ -1,5 +1,6 @@
 import { DEFAULT_SKILL_VERSION, FRONTMATTER_SUPPORTED_FIELDS } from "../../config.ts";
-import type { AnalyzerContext, AnalyzerState, FileReference } from "../../types.ts";
+import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
+import type { FileReference } from "skill-lab/shared";
 import { discoverReferencedFiles } from "./discover-files.ts";
 import { filterScanQueue } from "./filter-files.ts";
 
@@ -9,8 +10,6 @@ export async function run001Discovery(
 ): Promise<AnalyzerState> {
     const files = await context.skillReader.listFiles();
     const skillMdPath = await context.skillReader.getSkillMdPath();
-
-    // SkillReader guarantees valid and parseable frontmatter.
     const frontmatter = await context.skillReader.getSkillMdFrontmatter();
 
     const nextState: AnalyzerState = {
@@ -27,7 +26,10 @@ export async function run001Discovery(
         if (
             !FRONTMATTER_SUPPORTED_FIELDS.includes(
                 field as (typeof FRONTMATTER_SUPPORTED_FIELDS)[number],
-            )
+            ) && ![
+                "startLineNumber",
+                "endLineNumber",
+            ].includes(field)
         ) {
             nextState.warnings.push(
                 `Unknown frontmatter field '${field}' - analysis not supported yet`,
@@ -35,7 +37,7 @@ export async function run001Discovery(
         }
     }
 
-    const discovered = await discoverReferencedFiles({
+    const discovered = await discoverReferencedFiles(context, {
         startQueue: [{ path: skillMdPath, depth: 0 }],
         allFiles: files,
         readTextFile: (path) => context.skillReader.readTextFile(path),

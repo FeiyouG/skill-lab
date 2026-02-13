@@ -5,7 +5,7 @@ export const PYTHON_NETWORK_RULES: AstGrepRule[] = [
     {
         id: "net-requests",
         description: "Detects Python requests usage",
-        language: "python",
+        grammar: "python",
         patterns: [
             "requests.get($URL)",
             "requests.post($URL, data=$DATA)",

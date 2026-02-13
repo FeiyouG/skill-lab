@@ -2,69 +2,89 @@
  * File reference extractor for Python scripts.
  *
  * Detects:
- * - import / from...import statements → via: "import"
+ * - import statements → via: "import"
+ * - from...import statements → via: "import"
  * - open() calls with host FS paths → via: "bare-path"
- * - Host filesystem paths in string literals → via: "bare-path"
+ * - URL string literals (requests.get, urllib, etc.) → via: "url"
+ *
+ * Uses ast-grep AST traversal.
  */
 
-import { type FileRefDiscovery, isHostFsPath, isUrl } from "../shared/file-refs.ts";
+import { isHostFsPath, isUrl } from "../shared/file-refs.ts";
+import type { AnalyzerContext, FileRefDiscovery } from "../../types.ts";
+import { PYTHON_NODE } from "./astTypes.ts";
 
-/** Matches: import foo, import foo.bar */
-const IMPORT_PATTERN = /^\s*import\s+([\w.]+)/;
-
-/** Matches: from foo import bar, from foo.bar import baz */
-const FROM_IMPORT_PATTERN = /^\s*from\s+([\w.]+)\s+import/;
-
-/** Matches: open("path") or open('path') */
-const OPEN_PATTERN = /\bopen\s*\(\s*["'`]([^"'`\n]+)["'`]/g;
-
-/** Matches URL string literals (requests.get, urllib, etc.) */
-const URL_STRING_PATTERN = /["'](https?:\/\/[^"'\n]+)["']/g;
-
-/**
- * Extracts file references from Python source content.
- */
-export function extractPythonFileRefs(content: string): FileRefDiscovery[] {
+export function extractPythonFileRefs(
+    context: AnalyzerContext,
+    content: string,
+): FileRefDiscovery[] {
     const refs: FileRefDiscovery[] = [];
-    const lines = content.split("\n");
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const lineNo = i + 1;
+    const ast = context.astgrepClient.parse("python", content);
+    const root = ast.root();
 
-        // Skip comment lines
-        if (/^\s*#/.test(line)) continue;
-
-        // import statements
-        const importMatch = IMPORT_PATTERN.exec(line);
-        if (importMatch) {
-            const pkg = importMatch[1]?.trim();
-            if (pkg) refs.push({ path: pkg, line: lineNo, via: "import" });
+    // ── import_statement (e.g. `import os`, `import os.path`) ───────────────
+    const importNodes = root.findAll({ rule: { kind: PYTHON_NODE.IMPORT_STATEMENT } });
+    for (const node of importNodes) {
+        const nameNode = node.find({ rule: { kind: PYTHON_NODE.DOTTED_NAME } });
+        const pkg = nameNode?.text() ?? "";
+        if (pkg) {
+            refs.push({ path: pkg, line: node.range().start.line + 1, via: "import" });
         }
+    }
 
-        // from...import statements
-        const fromMatch = FROM_IMPORT_PATTERN.exec(line);
-        if (fromMatch) {
-            const pkg = fromMatch[1]?.trim();
-            if (pkg) refs.push({ path: pkg, line: lineNo, via: "import" });
+    // ── import_from_statement (e.g. `from os.path import join`) ─────────────
+    const fromImportNodes = root.findAll({ rule: { kind: PYTHON_NODE.IMPORT_FROM_STATEMENT } });
+    for (const node of fromImportNodes) {
+        const moduleNode = node.field("module_name");
+        const pkg = moduleNode?.text() ?? "";
+        if (pkg) {
+            refs.push({ path: pkg, line: node.range().start.line + 1, via: "import" });
         }
+    }
 
-        // open() with host FS path
-        OPEN_PATTERN.lastIndex = 0;
-        for (const match of line.matchAll(OPEN_PATTERN)) {
-            const path = match[1]?.trim();
-            if (path && isHostFsPath(path)) {
-                refs.push({ path, line: lineNo, via: "bare-path" });
-            }
+    // ── open("path") ─────────────────────────────────────────────────────────
+    const openCallNodes = root.findAll({
+        rule: {
+            kind: PYTHON_NODE.CALL,
+            has: {
+                field: "function",
+                regex: "^open$",
+                stopBy: "neighbor",
+            },
+        },
+    });
+    for (const node of openCallNodes) {
+        const argsNode = node.field("arguments");
+        if (!argsNode) continue;
+        // string → string_content (Python string has no string_fragment)
+        const strNode = argsNode.find({ rule: { kind: PYTHON_NODE.STRING } });
+        const contentNode = strNode?.find({ rule: { kind: PYTHON_NODE.STRING_CONTENT } });
+        const path = contentNode?.text() ?? "";
+        if (path && isHostFsPath(path)) {
+            refs.push({ path, line: node.range().start.line + 1, via: "bare-path" });
         }
+    }
 
-        // URL string literals
-        URL_STRING_PATTERN.lastIndex = 0;
-        for (const match of line.matchAll(URL_STRING_PATTERN)) {
-            const url = match[1]?.trim();
-            if (url && isUrl(url)) {
-                refs.push({ path: url, line: lineNo, via: "url" });
-            }
+    // ── requests.*/urllib.* URL calls ────────────────────────────────────────
+    const httpCallNodes = root.findAll({
+        rule: {
+            kind: PYTHON_NODE.CALL,
+            has: {
+                field: "function",
+                regex: "^(?:requests|urllib)",
+                stopBy: "neighbor",
+            },
+        },
+    });
+    for (const node of httpCallNodes) {
+        const argsNode = node.field("arguments");
+        if (!argsNode) continue;
+        const strNode = argsNode.find({ rule: { kind: PYTHON_NODE.STRING } });
+        const contentNode = strNode?.find({ rule: { kind: PYTHON_NODE.STRING_CONTENT } });
+        const url = contentNode?.text() ?? "";
+        if (url && isUrl(url)) {
+            refs.push({ path: url, line: node.range().start.line + 1, via: "url" });
         }
     }
 

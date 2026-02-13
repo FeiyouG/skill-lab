@@ -4,7 +4,7 @@ export const NODE_ECOSYSTEM_RULES: AstGrepRule[] = [
     {
         id: "shell-npm",
         description: "Detects npm commands",
-        language: "bash",
+        grammar: "bash",
         patterns: ["npm $SUB $$$ARGS"],
         permission: {
             tool: "npm",
@@ -16,7 +16,7 @@ export const NODE_ECOSYSTEM_RULES: AstGrepRule[] = [
     {
         id: "shell-pnpm",
         description: "Detects pnpm commands",
-        language: "bash",
+        grammar: "bash",
         patterns: ["pnpm $SUB $$$ARGS"],
         permission: {
             tool: "pnpm",
@@ -28,7 +28,7 @@ export const NODE_ECOSYSTEM_RULES: AstGrepRule[] = [
     {
         id: "shell-yarn",
         description: "Detects yarn commands",
-        language: "bash",
+        grammar: "bash",
         patterns: ["yarn $SUB $$$ARGS"],
         permission: {
             tool: "yarn",
@@ -40,7 +40,7 @@ export const NODE_ECOSYSTEM_RULES: AstGrepRule[] = [
     {
         id: "shell-deno",
         description: "Detects deno commands",
-        language: "bash",
+        grammar: "bash",
         patterns: ["deno $SUB $$$ARGS"],
         permission: {
             tool: "deno",
@@ -52,7 +52,7 @@ export const NODE_ECOSYSTEM_RULES: AstGrepRule[] = [
     {
         id: "shell-node",
         description: "Detects node commands",
-        language: "bash",
+        grammar: "bash",
         patterns: ["node $FILE $$$ARGS"],
         permission: {
             tool: "node",
