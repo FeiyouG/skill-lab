@@ -1,0 +1,18 @@
+{
+    "name": "skill-lab-docs",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vitepress dev",
+        "build": "vitepress build",
+        "preview": "vitepress preview"
+    },
+    "devDependencies": {
+        "@shikijs/transformers": "^2.5.0",
+        "minisearch": "^7.2.0",
+        "shiki": "^2.5.0",
+        "vue": "^3.5.28",
+        "vitepress": "^1.6.4"
+    }
+}
