@@ -31,7 +31,7 @@ export type AnalyzerState = {
     warnings: string[];
     metadata: {
         scannedFiles: string[];
-        skippedFiles: Array<{ path: string; reason: string, referenceBy?: Reference}>;
+        skippedFiles: Array<{ path: string; reason: string; referenceBy?: Reference }>;
         rulesUsed: string[];
         config: AnalyzerConfig;
     };

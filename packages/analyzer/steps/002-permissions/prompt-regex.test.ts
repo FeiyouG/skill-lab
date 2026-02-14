@@ -43,7 +43,7 @@ function createInlineContentSkillReader(
     } as unknown as AnalyzerContext["skillReader"];
 }
 
-function createStateWithMarkdown(content: string) {
+function createStateWithMarkdown(content: string): AnalyzerState {
     const state: AnalyzerState = {
         skillId: "test",
         skillVersionId: "test",
@@ -70,16 +70,16 @@ function createStateWithMarkdown(content: string) {
         ...state,
         scanQueue: [{
             path: "SKILL.md",
-            sourceType: "local" as const,
-            fileType: "markdown" as const,
-            role: "entrypoint" as const,
+            sourceType: "local",
+            fileType: "markdown",
+            role: "entrypoint",
             depth: 0,
         }],
         frontmatter: {
             name: "test",
             description: "test",
         },
-        files: [{ path: "SKILL.md", contentType: "text" as const, size: content.length }],
+        files: [{ path: "SKILL.md", contentType: "text", size: content.length }],
     };
 }
 

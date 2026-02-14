@@ -27,7 +27,7 @@ function createInitialState(): AnalyzerState {
     };
 }
 
-Deno.test("scanFileForPermissions keeps generic shell matches to likely commands", async () => {
+Deno.test("scanFileForPermissions keeps generic shell matches to likely commands", () => {
     const content = [
         "# rm -rf /tmp/old-data",
         "Set variable before running cleanup.",
@@ -40,7 +40,7 @@ Deno.test("scanFileForPermissions keeps generic shell matches to likely commands
     const context = {
         astgrepClient: new AstGrepClient(),
     } as AnalyzerContext;
-    const next = await scanFileForPermissions(context, {
+    const next = scanFileForPermissions(context, {
         state,
         fileRef: {
             path: "scripts/demo.sh",
@@ -61,6 +61,7 @@ Deno.test("scanFileForPermissions keeps generic shell matches to likely commands
     assertEquals(extractedTools.includes("set"), false);
     assertEquals(extractedTools.includes("path"), false);
     assertEquals(extractedTools.includes("run"), false);
+    assertEquals(extractedTools.includes("echo"), true);
 
     const forbiddenGenericPermissions = next.permissions.filter((permission) =>
         permission.tool === "set" || permission.tool === "path" || permission.tool === "run"

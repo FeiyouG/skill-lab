@@ -1,10 +1,6 @@
 import { FILETYPE_BY_LANGUAGE } from "skill-lab/shared";
 import type { AnalyzerContext, CodeBlock } from "../../types.ts";
-import {
-    MARKDOWN_INLINE_QUERY,
-    MARKDOWN_NODE,
-    MARKDOWN_QUERY,
-} from "./astTypes.ts";
+import { MARKDOWN_INLINE_QUERY, MARKDOWN_NODE, MARKDOWN_QUERY } from "./astTypes.ts";
 import type Parser from "tree-sitter";
 
 type TsPoint = { row: number };
@@ -56,7 +52,9 @@ export async function extractCodeBlocks(
                 const contentNode = blockNode.children.find((child) =>
                     child.type === MARKDOWN_NODE.CODE_FENCE_CONTENT
                 );
-                const codeContent = contentNode?.text.trimEnd() ?? "";
+                const codeContent = (contentNode?.text ?? "")
+                    .replace(/\n?[`~]{3,}[^\n]*\s*$/, "")
+                    .trimEnd();
                 if (!codeContent.trim()) continue;
 
                 blocks.push({

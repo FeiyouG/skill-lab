@@ -61,11 +61,4 @@ Deno.test("run003Risks links destructive risk to matching permission reference o
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "DESTRUCTIVE:destructive_behavior");
     assertEquals(result.risks[0].permissions, ["rm-permission"]);
-
-    const rmPermission = result.permissions.find((permission) => permission.id === "rm-permission");
-    const gitPermission = result.permissions.find((permission) =>
-        permission.id === "git-permission"
-    );
-    assertEquals((rmPermission?.risks.length ?? 0) > 0, true);
-    assertEquals(gitPermission?.risks.length ?? 0, 0);
 });

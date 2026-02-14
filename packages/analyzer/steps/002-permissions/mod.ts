@@ -35,7 +35,7 @@ export async function run002Permissions(
                         skippedFiles: [...next.metadata.skippedFiles, {
                             path: fileRef.path,
                             reason: "external_library_dependency",
-                            referenceBy: fileRef.referencedBy
+                            referenceBy: fileRef.referencedBy,
                         }],
                     },
                 };
@@ -54,7 +54,7 @@ export async function run002Permissions(
                         skippedFiles: [...next.metadata.skippedFiles, {
                             path: fileRef.path,
                             reason: "external_reference",
-                            referenceBy: fileRef.referencedBy
+                            referenceBy: fileRef.referencedBy,
                         }],
                     },
                 };
@@ -77,7 +77,7 @@ export async function run002Permissions(
                     skippedFiles: [...next.metadata.skippedFiles, {
                         path: fileRef.path,
                         reason: `unsupported_type_${fileRef.fileType}`,
-                        referenceBy: fileRef.referencedBy
+                        referenceBy: fileRef.referencedBy,
                     }],
                 },
             };

@@ -49,7 +49,7 @@ export async function run001Discovery(
         fileType: "markdown",
         role: "entrypoint",
         depth: 0,
-    })
+    });
 
     const filtered = filterScanQueue({
         queue: discovered,

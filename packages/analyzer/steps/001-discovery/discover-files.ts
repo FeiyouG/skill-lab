@@ -86,7 +86,9 @@ export async function discoverReferencedFiles(
                     referencedBy: current.referencedBy,
                 };
 
-                const existsInSkill = input.allFiles.filter((file) => file.path.includes(normalizedPath));
+                const existsInSkill = input.allFiles.filter((file) =>
+                    file.path.includes(normalizedPath)
+                );
                 if (existsInSkill.length > 0) {
                     for (const file of existsInSkill) {
                         if (discovered.has(file.path)) continue;

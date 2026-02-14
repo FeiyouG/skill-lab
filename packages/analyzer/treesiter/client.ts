@@ -69,8 +69,8 @@ export class TreesitterClient {
         return parser;
     }
 
-    /** 
-     * Creates (and caches) a tree-sitter Query for the given grammar and S-expression query string. 
+    /**
+     * Creates (and caches) a tree-sitter Query for the given grammar and S-expression query string.
      */
     public async createQuery(
         grammar: TreesitterGrammer,

@@ -44,7 +44,10 @@ type DynamicLangRegistration = {
 export class AstGrepClient {
     private isLanguageRegistryInitialized = false;
     private PARSE_CACHE_BY_GRAMMAR: Partial<
-        Record<AstGrepRule["grammar"] | "markdown", Map<number, Map<number, ReturnType<typeof parse>>>>
+        Record<
+            AstGrepRule["grammar"] | "markdown",
+            Map<number, Map<number, ReturnType<typeof parse>>>
+        >
     > = {};
 
     /** Parse content for direct AST traversal using kind/composite rules. */
@@ -159,8 +162,10 @@ export class AstGrepClient {
         language: AstGrepRule["grammar"] | "markdown",
     ): Map<number, Map<number, ReturnType<typeof parse>>> {
         if (!this.PARSE_CACHE_BY_GRAMMAR[language]) {
-            this.PARSE_CACHE_BY_GRAMMAR[language] =
-                new Map<number, Map<number, ReturnType<typeof parse>>>();
+            this.PARSE_CACHE_BY_GRAMMAR[language] = new Map<
+                number,
+                Map<number, ReturnType<typeof parse>>
+            >();
         }
         return this.PARSE_CACHE_BY_GRAMMAR[language]!;
     }
