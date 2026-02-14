@@ -1,11 +1,11 @@
 import type { SkillFile } from "@FeiyouG/skill-lab";
 import { getFileRole, getFileType } from "skill-lab/shared";
 
-import type { AnalyzerContext, CodeBlock } from "../../types.ts";
-import { FILETYPE_CONFIGS, RULES_BY_FILETYPE } from "../../rules/mod.ts";
+import type { AnalyzerContext } from "../../types.ts";
+import { FILETYPE_CONFIGS } from "../../rules/mod.ts";
 import { isHostFsPath, isUrl } from "../../rules/shared/file-refs.ts";
 import type { FileRefDiscovery } from "../../types.ts";
-import type { FileReference, FileType, Reference } from "skill-lab/shared";
+import type { FileReference, Reference } from "skill-lab/shared";
 import { encodeCodeBlockPath } from "../../utils/code-block-path.ts";
 
 type StartQueueItem = { path: string; depth: number; referencedBy?: Reference };
@@ -55,8 +55,8 @@ export async function discoverReferencedFiles(
         blocks.push({
             language: currentFileType,
             content,
-            startLine: 1,
-            endLine: Math.max(1, content.split("\n").length),
+            startLine: 0,
+            endLine: Math.max(0, content.split("\n").length),
             type: "content",
         });
 
@@ -153,54 +153,37 @@ export async function discoverReferencedFiles(
                     });
                     continue;
                 }
-
-                // bare-path, inline-code, import, source — silently discard if not in skill
             }
 
-            if (shouldCreateCodeBlockReference(block, currentFileType, current.depth)) {
-                const codeBlockPath = encodeCodeBlockPath(
+            let codeBlockPath = current.path;
+            if (block.type != "content") {
+                codeBlockPath = encodeCodeBlockPath(
                     current.path,
                     block.startLine,
                     block.endLine,
                 );
-                if (!discovered.has(codeBlockPath)) {
-                    discovered.set(codeBlockPath, {
-                        path: codeBlockPath,
-                        sourceType: "local",
-                        fileType: block.language,
-                        role: "script",
-                        depth: current.depth + 1,
-                        discoveryMethod: "code-block",
-                        referencedBy: {
-                            file: current.path,
-                            line: block.startLine,
-                            lineEnd: block.endLine,
-                            type: block.type,
-                            referencedBy: current.referencedBy,
-                        },
-                    });
-                }
+            }
+            if (!discovered.has(codeBlockPath)) {
+                discovered.set(codeBlockPath, {
+                    path: codeBlockPath,
+                    sourceType: "local",
+                    fileType: block.language,
+                    role: "script",
+                    depth: current.depth + 1,
+                    discoveryMethod: "code-block",
+                    referencedBy: {
+                        file: current.path,
+                        line: block.startLine,
+                        lineEnd: block.endLine,
+                        type: block.type,
+                        referencedBy: current.referencedBy,
+                    },
+                });
             }
         }
     }
 
     return Array.from(discovered.values());
-}
-
-function shouldCreateCodeBlockReference(
-    block: CodeBlock,
-    parentFileType: FileType,
-    parentDepth: number,
-): boolean {
-    if (parentDepth < 0) return false;
-    if (block.type === "content") return false;
-    if (
-        block.language === parentFileType && parentFileType !== "markdown" &&
-        parentFileType !== "text"
-    ) {
-        return false;
-    }
-    return Boolean(RULES_BY_FILETYPE[block.language]?.length);
 }
 
 function normalizePath(value: string): string {

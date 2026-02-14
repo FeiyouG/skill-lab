@@ -39,21 +39,20 @@ export default defineConfig({
                                 { text: "Rules Overview", link: "/analyzer/rules-overview" },
                             ],
                         },
-                        {
-                            text: "SkillReader",
-                            items: [
-                                { text: "Overview", link: "/skillreader/overview" },
-                                { text: "Quickstart", link: "/skillreader/quickstart" },
-                                { text: "API Reference", link: "/skillreader/api-reference" },
-                            ],
-                        },
+                        // {
+                        //     text: "SkillReader",
+                        //     items: [
+                        //         { text: "Overview", link: "/skillreader/overview" },
+                        //         { text: "Quickstart", link: "/skillreader/quickstart" },
+                        //         { text: "API Reference", link: "/skillreader/api-reference" },
+                        //     ],
+                        // },
                     ],
                 },
-                // {
-                //     text: "Examples",
-                //     collapsed: true,
-                //     items: [{ text: "Coming Soon", link: "/examples/coming-soon" }],
-                // },
+                {
+                    text: "Examples",
+                    items: [{ text: "Historical Git Ref", link: "/examples/coming-soon" }],
+                },
             ],
         },
         socialLinks: [{ icon: "github", link: "https://github.com/FeiyouG/skill-lab" }],

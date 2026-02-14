@@ -1,17 +1,21 @@
 # SkillReader API Reference
 
-## Main exports
+## Main API
 
-From `packages/skillreader/mod.ts`:
+The recommended entrypoint is:
 
-- Abstract `SkillReader`
-- `LocalFsSkillReader`
-- `GitHubApiSkillReader`, `GitHubRawSkillReader`, `GitHubSkillReader`
-- `CloudStorageSkillReader`
-- Manifest helpers: `createSkillManifest`, `createZipManifest`, `parseSkillManifest`
-- Utility helpers: `parseFrontmatter`, `contentTypeFromPath`, `isProbablyText`
+```ts
+SkillReaderFactory.create({
+  source: string,
+  subDir?: string,
+  gitRef?: string,
+  githubToken?: string,
+})
+```
 
-## `SkillReader` base methods
+This returns a `SkillReader` implementation for local filesystem, GitHub, or local git-ref mode.
+
+## SkillReader methods
 
 - `listFiles(): Promise<SkillFile[]>`
 - `readTextFile(path): Promise<string | null>`
@@ -21,10 +25,3 @@ From `packages/skillreader/mod.ts`:
 - `getSkillMdContent(): Promise<string>`
 - `getSkillMdFrontmatter(): Promise<SkillFrontmatter>`
 - `validate(): Promise<{ ok: boolean; reason?: string }>`
-
-## Key types
-
-- `SkillFile`
-- `SkillManifest` (`SkillFileManifest` or `SkillZipManifest`)
-- `SkillFrontmatter`
-- `SkillContentType`

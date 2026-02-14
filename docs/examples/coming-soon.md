@@ -1,9 +1,18 @@
-# Examples
+# Example: Analyze a Skill at a Historical Git Ref
 
-Examples are reserved for future use.
+Use this when your repository contains multiple skills and you want to analyze
+one skill at a specific branch/tag/commit.
 
-This section will include practical end-to-end workflows for:
+```bash
+slab analyze /path/to/repo \
+  --gitRef main \
+  --subDir skills/my-skill \
+  --json
+```
 
-- `slab` CLI usage patterns
-- SkillReader integration patterns
-- Analyzer integration patterns
+What this does:
+
+- reads files from git ref `main` instead of your working tree
+- scopes analysis to `skills/my-skill`
+- expects `skills/my-skill/SKILL.md` to exist
+- prints full analyzer output as JSON

@@ -1,13 +1,17 @@
 import { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
 import { run001Discovery, run002Permissions, run003Risks } from "./steps/mod.ts";
-import type { AnalyzerConfig, AnalyzerContext, AnalyzerResult, AnalyzerState } from "./types.ts";
+import type { AnalyzerConfig, AnalyzerResult, AnalyzerState } from "./types.ts";
+import type { SkillReaderFactoryOptions } from "../skillreader/mod.ts";
+import { SkillReaderFactory } from "../skillreader/mod.ts";
+import { TreesitterClient } from "./treesiter/client.ts";
+import { AstGrepClient } from "./astgrep/mod.ts";
 
 export type { AnalyzerConfig, AnalyzerResult, AnalyzerState } from "./types.ts";
 
 export { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
 
 export async function runAnalysis(input: {
-    context: AnalyzerContext;
+    options: SkillReaderFactoryOptions;
     skillId?: string;
     skillVersionId?: string;
     config?: Partial<AnalyzerConfig>;
@@ -18,8 +22,21 @@ export async function runAnalysis(input: {
         config: input.config,
     });
 
-    state = await run001Discovery(state, input.context);
-    state = await run002Permissions(state, input.context);
+    const skillReader = await SkillReaderFactory.create(input.options);
+
+    const validation = await skillReader.validate();
+    if (!validation.ok) {
+        throw new Error(validation.reason ?? "Invalid skill repository");
+    }
+
+    const context = {
+        skillReader,
+        treesitterClient: new TreesitterClient(),
+        astgrepClient: new AstGrepClient(),
+    };
+
+    state = await run001Discovery(state, context);
+    state = await run002Permissions(state, context);
     return run003Risks(state);
 }
 

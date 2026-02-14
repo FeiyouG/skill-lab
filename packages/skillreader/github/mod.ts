@@ -4,7 +4,7 @@ import { GitHubRawSkillReader } from "./githubRaw.ts";
 
 export type GitHubSkillReaderOptions = {
     repoUrl: string;
-    gitRef: string;
+    gitRef?: string;
     dir?: string;
     token?: string;
 };

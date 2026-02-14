@@ -5,14 +5,21 @@
 ```ts
 import { LocalFsSkillReader } from "@FeiyouG/skill-lab";
 import { runAnalysis } from "@FeiyouG/skill-lab-analyzer";
+import { AstGrepClient } from "../../packages/analyzer/astgrep/client.ts";
+import { TreesitterClient } from "../../packages/analyzer/treesiter/client.ts";
 
-const reader = new LocalFsSkillReader({ root: "./my-skill" });
-const result = await runAnalysis({ context: { skillReader: reader } });
+const result = await runAnalysis({
+    options: {
+        root: "./my-skill", // or a github link
+        // subDir: "optoinal subdirectory",
+        // gitRef: "Optional git commit sha/tag/branch"
+    },
+});
 
 console.log(result.riskLevel, result.score, result.summary);
 ```
 
-## Run from CLI
+This is equivalent of running the following from CLI:
 
 ```bash
 slab analyze ./my-skill --json

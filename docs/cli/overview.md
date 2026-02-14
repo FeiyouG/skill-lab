@@ -1,22 +1,11 @@
 # CLI Overview
 
-`slab` is the Skill Lab CLI for interacting with the skill registry and local installations.
+`slab` is the Skill Lab CLI.
 
-## Core workflows
+## Commands
 
-- Find skills: `slab search <query>`
-- Inspect a skill: `slab info <skill>`
-- Install and manage skills: `slab install`, `slab list`, `slab update`, `slab uninstall`
-- Manage local settings: `slab config`
-- Run local analysis: `slab analyze <path>`
+### [Analyze](/cli/commands/analyze)
 
-## Command list
+`slab analyze <paht-or-github-url>`
 
-- `search`
-- `info`
-- `install`
-- `list`
-- `update`
-- `uninstall`
-- `config`
-- `analyze`
+Run static analyzer against a skill from local filesystem or GitHub.

@@ -11,10 +11,10 @@
         "@FeiyouG/skill-lab-analyzer": "../analyzer/mod.ts"
     },
     "tasks": {
-        "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi src/main.ts",
-        "build": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --output=slab src/main.ts",
+        "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-run=git src/main.ts",
+        "build": "deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-run=git --output=slab src/main.ts",
         "test": "deno test --allow-all",
-        "install": "deno install --allow-net --allow-read --allow-write --allow-env --allow-ffi --name=slab src/main.ts",
+        "install": "deno install --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-run=git --name=slab src/main.ts",
         "check": "deno fmt --check && deno lint && deno check src/**/*.ts"
     }
 }

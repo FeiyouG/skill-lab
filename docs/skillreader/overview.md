@@ -1,12 +1,25 @@
 # SkillReader Overview
 
-`@FeiyouG/skill-lab` provides typed readers for skill repositories.
+`@FeiyouG/skill-lab` provides readers for skill repositories and a source-aware factory.
 
-## Supported sources
+## Recommended entrypoint
+
+Use `SkillReaderFactory` to create the correct reader from one input value.
+
+```ts
+import { SkillReaderFactory } from "@FeiyouG/skill-lab";
+
+const reader = await SkillReaderFactory.create({
+    source: "https://github.com/org/repo",
+    subDir: "skills/my-skill",
+});
+```
+
+## Source types
 
 - Local filesystem (`LocalFsSkillReader`)
-- GitHub API and raw endpoints (`GitHubApiSkillReader`, `GitHubRawSkillReader`, `GitHubSkillReader`)
-- Cloud storage (`CloudStorageSkillReader`)
+- GitHub repositories (`GitHubSkillReader`)
+- Local git history when `gitRef` is provided
 
 ## Core responsibilities
 

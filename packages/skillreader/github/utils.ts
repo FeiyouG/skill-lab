@@ -6,7 +6,9 @@ export type ParsedGitHubRepo = {
 export function parseGitHubRepo(repoUrl: string): ParsedGitHubRepo | null {
     try {
         const parsed = new URL(repoUrl);
-        if (!parsed.hostname.includes("github.com")) return null;
+        if (!(parsed.hostname === "github.com" || parsed.hostname === "www.github.com")) {
+            return null;
+        }
         const match = parsed.pathname.match(/^\/([^\/]+)\/([^\/]+?)(\.git)?$/);
         if (!match) return null;
         return { owner: match[1], repo: match[2] };

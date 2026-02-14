@@ -58,6 +58,8 @@ export async function run001Discovery(
         maxFileSize: state.metadata.config.maxFileSize,
     });
 
+    console.log(filtered);
+
     return {
         ...nextState,
         scanQueue: filtered.queue,

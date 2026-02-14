@@ -32,3 +32,14 @@ slab uninstall <skill>
 slab config
 slab analyze <path>
 ```
+
+## Analyze sources
+
+```bash
+slab analyze ./path/to/skill
+slab analyze https://github.com/org/repo
+slab analyze https://github.com/org/repo --subDir skills/my-skill --gitRef main
+```
+
+For GitHub URLs, `--githubToken` overrides `GITHUB_TOKEN`. If neither is set,
+the CLI uses unauthenticated GitHub requests.

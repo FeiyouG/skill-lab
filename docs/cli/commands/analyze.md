@@ -1,29 +1,37 @@
 # `slab analyze`
 
-Run local analyzer v2 against a skill from local filesystem, GitHub, or cloud storage.
+Run static analyzer against a skill from local filesystem or GitHub.
 
 ## Usage
 
 ```bash
-slab analyze [path]
-slab analyze --github <repo-url> --gitRef <ref>
-slab analyze --cloud <base-url>
+slab analyze <path-or-github-repo-url>
 ```
+
+`path` is required. The CLI infers source type from the value.
+
+- GitHub URL (`https://github.com/<owner>/<repo>`) -> GitHub source
+- Existing local directory -> local filesystem source
+- Any other URL/value -> error
 
 ## Options
 
-- `--github <url>`: GitHub repository URL
-- `--gitRef <sha|branch|tag>`: Git reference for GitHub mode
-- `--dir <path>`: subdirectory under the selected source
-- `--github-token <token>`: override `GITHUB_TOKEN`
-- `--cloud <baseUrl>`: read skill from cloud storage
+- `--gitRef <sha|branch|tag>`: Git reference for GitHub or local git repositories. If omitted for GitHub, the default branch is used automatically.
+- `--subDir <path>`: optional path from source root to the skill root directory containing `SKILL.md`
+- `--githubToken <token>`: GitHub token for GitHub sources. Overrides `GITHUB_TOKEN`; if neither is set, requests are unauthenticated.
 - `--json`: print full analyzer output as JSON
 
 ## Examples
 
 ```bash
 slab analyze ./path/to/skill
-slab analyze --github https://github.com/org/repo --gitRef main --dir skills/my-skill
-slab analyze --cloud https://storage.example.com/skills/my-skill
+slab analyze https://github.com/org/repo
+slab analyze https://github.com/org/repo --subDir skills/my-skill
+slab analyze /path/to/repo --gitRef main --subDir skills/my-skill
 slab analyze ./path/to/skill --json
 ```
+
+## Notes
+
+- To use `--gitRef` on a local path, the path must be the git repository root.
+- Use `--subDir` to point to the skill root directory where `SKILL.md` exists.

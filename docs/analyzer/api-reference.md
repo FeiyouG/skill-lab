@@ -1,19 +1,10 @@
 # Analyzer API Reference
 
-## Exports
-
-From `packages/analyzer/mod.ts`:
-
-- `runAnalysis(input)`
-- `createInitialState(input?)`
-- `DEFAULT_CONFIG`, `DEFAULT_SKILL_VERSION`, `VERSION`
-- types: `AnalyzerConfig`, `AnalyzerResult`, `AnalyzerState`, `Permission`, `Risk`, `Severity`, `Finding`
-
 ## `runAnalysis`
 
 ```ts
 runAnalysis(input: {
-  context: AnalyzerContext;
+  options: SkillReaderFactoryOptions;
   skillId?: string;
   skillVersionId?: string;
   config?: Partial<AnalyzerConfig>;
@@ -22,10 +13,23 @@ runAnalysis(input: {
 
 ### Input
 
-- `context.skillReader`: required `SkillReader` instance
+```ts
+export type SkillReaderFactoryOptions = {
+    source: string;
+    subDir?: string;
+    gitRef?: string;
+    githubToken?: string;
+};
+
+export type AnalyzerConfig = {
+    maxFileSize: number;
+    maxFileCount: number;
+    maxScanDepth: number;
+};
+```
+
 - `skillId`: optional identifier to attach to output
 - `skillVersionId`: optional version identifier to attach to output
-- `config`: optional limits override (file size/count/depth)
 
 ### Output
 
@@ -37,6 +41,5 @@ runAnalysis(input: {
 - `warnings: string[]`
 - `metadata`: scanned/skipped files, rules used, effective config
 
-## `createInitialState`
-
-Creates a blank analyzer state with default config merged with optional overrides.
+Other exported helpers include `createInitialState`, `DEFAULT_CONFIG`, and
+`DEFAULT_SKILL_VERSION`.

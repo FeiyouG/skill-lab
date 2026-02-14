@@ -22,7 +22,6 @@ Skill Lab is split into focused packages with clear boundaries.
 The `slab analyze` command resolves a `SkillReader` implementation from:
 
 - local filesystem,
-- GitHub repository + ref,
-- cloud storage URL.
+- GitHub repository + optional ref.
 
 Then it passes that reader into `runAnalysis()` and prints either JSON or a concise summary.
