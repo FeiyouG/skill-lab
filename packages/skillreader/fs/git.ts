@@ -48,7 +48,7 @@ export class LocalGitSkillReader extends SkillReader {
         const fullPath = this.joinWithSubDir(path);
         const result = await runGit(this.repoRoot, ["show", `${this.gitRef}:${fullPath}`]);
         if (result.code !== 0) return null;
-        return new Response(result.stdout).body;
+        return new Response(new Uint8Array(result.stdout)).body;
     }
 
     async readManifest() {
@@ -104,11 +104,35 @@ export class LocalGitSkillReader extends SkillReader {
 }
 
 async function runGit(repoRoot: string, args: string[]) {
-    return await new Deno.Command("git", {
-        args: ["-C", repoRoot, ...args],
-        stdout: "piped",
-        stderr: "piped",
-    }).output();
+    const denoRuntime = Deno as unknown as {
+        Command?: new (
+            command: string,
+            options: {
+                args: string[];
+                stdout: "piped";
+                stderr: "piped";
+            },
+        ) => { output: () => Promise<{ code: number; stdout: Uint8Array; stderr: Uint8Array }> };
+    };
+
+    if (denoRuntime.Command) {
+        return await new denoRuntime.Command("git", {
+            args: ["-C", repoRoot, ...args],
+            stdout: "piped",
+            stderr: "piped",
+        }).output();
+    }
+
+    const { spawnSync } = await import("node:child_process");
+    const output = spawnSync("git", ["-C", repoRoot, ...args], {
+        stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    return {
+        code: output.status ?? 1,
+        stdout: output.stdout ? new Uint8Array(output.stdout) : new Uint8Array(),
+        stderr: output.stderr ? new Uint8Array(output.stderr) : new Uint8Array(),
+    };
 }
 
 export async function ensureGitRepoRoot(path: string): Promise<void> {

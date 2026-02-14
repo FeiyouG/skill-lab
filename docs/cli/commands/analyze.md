@@ -1,6 +1,6 @@
 # `slab analyze`
 
-Run static analyzer against a skill from local filesystem or GitHub.
+Run deterministic analysis on a skill from local filesystem or GitHub.
 
 ## Usage
 
@@ -8,16 +8,16 @@ Run static analyzer against a skill from local filesystem or GitHub.
 slab analyze <path-or-github-repo-url>
 ```
 
-`path` is required. The CLI infers source type from the value.
+The target is required. The CLI infers source type from the value.
 
 - GitHub URL (`https://github.com/<owner>/<repo>`) -> GitHub source
 - Existing local directory -> local filesystem source
-- Any other URL/value -> error
+- Any other value -> error
 
 ## Options
 
-- `--gitRef <sha|branch|tag>`: Git reference for GitHub or local git repositories. If omitted for GitHub, the default branch is used automatically.
-- `--subDir <path>`: optional path from source root to the skill root directory containing `SKILL.md`
+- `--gitRef <sha|branch|tag>`: Git reference for GitHub or local git repositories. If omitted for GitHub, the default branch is used.
+- `--subDir <path>`: optional path from repository root to the skill directory that contains `SKILL.md`
 - `--githubToken <token>`: GitHub token for GitHub sources. Overrides `GITHUB_TOKEN`; if neither is set, requests are unauthenticated.
 - `--json`: print full analyzer output as JSON
 

@@ -1,5 +1,23 @@
 # Analyzer API Reference
 
+## `Analyzer` (recommended)
+
+```ts
+const analyzer = new Analyzer();
+
+await analyzer.analyze({
+  source: "./my-skill",
+  subDir?: string,
+  gitRef?: string,
+  githubToken?: string,
+  skillId?: string,
+  skillVersionId?: string,
+  config?: Partial<AnalyzerConfig>,
+});
+```
+
+`Analyzer` is exported from `@FeiyouG/skill-lab` and is the primary entry point for deterministic analysis.
+
 ## `runAnalysis`
 
 ```ts

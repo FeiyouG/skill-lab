@@ -1,35 +1,73 @@
-# skill-lab
+# Skill Lab
 
-A focused Deno workspace for the SkillReader library, analyzer library, and `slab` CLI executable.
+Skill Lab is a toolkit for deterministic analysis of AI agent skills.
 
-## Workspace
+It helps teams inspect skill behavior before enablement by producing structured
+permission and risk output.
 
-- `packages/skillreader` - `@FeiyouG/skill-lab`
-- `packages/analyzer` - `@FeiyouG/skill-lab-analyzer`
-- `packages/shared` - `@FeiyouG/skill-lab-shared`
-- `packages/cli` - `@FeiyouG/skill-lab-cli`
+## Install the CLI (`slab`)
 
-## Development
-
-No install step is required. Deno fetches dependencies automatically.
+#### Homebrew
 
 ```bash
-deno task check
-deno task test
-deno task build
+brew tap feiyoug/tap/slab
 ```
 
-## Docs
-
-The documentation site lives in `docs/` and is built with VitePress via Deno tasks.
-No `npm` commands are required.
+or
 
 ```bash
-deno task docs:dev
-deno task docs:build
+brew tap feiyoug/tap
+brew install slab
 ```
 
-## CLI
+#### Verify installation:
 
-The executable name is controlled by `CLI_NAME` in `packages/cli/src/main.ts`.
-Current command name: `slab`.
+```bash
+slab --help
+```
+
+## Install the library
+
+#### npm
+
+```bash
+npm install @FeiyouG/skill-lab
+```
+
+#### pnpm
+
+```bash
+pnpm add @FeiyouG/skill-lab
+```
+
+#### Deno
+
+```bash
+deno add npm:@FeiyouG/skill-lab
+```
+
+Use in code:
+
+```ts
+import { Analyzer } from "@FeiyouG/skill-lab";
+```
+
+## Quick example
+
+```bash
+slab analyze ./path/to/skill --json
+```
+
+## Documentation
+
+- Docs site: `docs/`
+- Start with `docs/guide/getting-started.md`
+
+## Repository layout
+
+- `packages/skillreader` - skill repository readers
+- `packages/analyzer` - deterministic analysis pipeline
+- `packages/shared` - shared domain and API types
+- `packages/cli` - `slab` command-line interface
+
+For contributor workflows, see `CONTRIBUTING.md`.

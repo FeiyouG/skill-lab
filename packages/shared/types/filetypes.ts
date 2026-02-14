@@ -1,7 +1,12 @@
 import { ReferenceType } from "./references.ts";
-import { SkillFrontmatter } from "@FeiyouG/skill-lab-reader";
 
-export type Frontmatter = Partial<SkillFrontmatter>;
+export type Frontmatter = {
+    startLineNumer?: number;
+    endLineNumer?: number;
+    name?: string;
+    description?: string;
+    [key: string]: unknown;
+};
 
 export type FileType =
     | "markdown"

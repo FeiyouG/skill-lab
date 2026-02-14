@@ -50,6 +50,7 @@
         "docs:dev": "deno task --cwd docs dev",
         "docs:build": "deno task --cwd docs build",
         "docs:preview": "deno task --cwd docs preview",
+        "npm:build": "deno run -A scripts/build_npm.ts",
         "precommit": "deno fmt && deno task check && deno task test"
     },
     "imports": {

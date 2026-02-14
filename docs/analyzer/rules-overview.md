@@ -10,4 +10,4 @@ Risk codes are grouped by category:
 - `PERSISTENCE:*` - persistence mechanisms
 - `SECRETS:*` - secret access and handling concerns
 
-Rule definitions are language-aware and include Bash, JavaScript, TypeScript, Python, Markdown, and text contexts.
+Rule definitions are language-aware and cover Bash, JavaScript, TypeScript, Python, Markdown, and text contexts.

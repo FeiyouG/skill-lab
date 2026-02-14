@@ -1,32 +1,48 @@
 # Getting Started
 
-## Prerequisites
+This guide shows the shortest path to analyze a skill with Skill Lab.
 
-- Deno installed for workspace development.
-- Node.js 18+ for docs tooling (VitePress).
+## 1) Install the CLI
 
-## Run checks in the workspace
+Follow [CLI Installation](/cli/installation).
 
-```bash
-deno task check
-deno task test
-```
-
-## Build and run the CLI
+## 2) Analyze a local skill
 
 ```bash
-deno task cli:build
-deno task cli:dev
+slab analyze ./path/to/skill
 ```
 
-## Run docs locally
+The target directory should contain `SKILL.md` at its root.
+
+## 3) Analyze a GitHub skill
 
 ```bash
-deno task docs:dev
+slab analyze https://github.com/org/repo
 ```
 
-Build static docs output:
+For repositories with multiple skills, scope to one skill directory:
 
 ```bash
-deno task docs:build
+slab analyze https://github.com/org/repo --subDir skills/my-skill
 ```
+
+## 4) Read the result
+
+Skill Lab reports a deterministic analysis result with:
+
+- `permissions`: requested and inferred capabilities
+- `risks`: typed risk signals with severity
+- `score` and `riskLevel`: aggregate risk output
+- `summary`: compact, human-readable assessment
+
+Use JSON output when integrating with tooling:
+
+```bash
+slab analyze ./path/to/skill --json
+```
+
+## Next steps
+
+- [Architecture](/guide/architecture)
+- [CLI Overview](/cli/overview)
+- [Analyzer Quickstart](/analyzer/quickstart)

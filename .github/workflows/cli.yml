@@ -2,7 +2,7 @@ name: CLI
 
 on:
     push:
-        branches: [main]
+        branches: ["**"]
         paths:
             - "packages/cli/**"
             - "packages/shared/**"
@@ -51,7 +51,9 @@ jobs:
         name: Build Verify (Linux)
         runs-on: ubuntu-latest
         needs: test
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        if: |
+            github.event_name == 'pull_request' ||
+            (github.event_name == 'push' && github.ref != 'refs/heads/main')
         steps:
             - uses: actions/checkout@v4
 
@@ -77,12 +79,29 @@ jobs:
                   path: slab-ci-linux-x64
 
     build-nightly:
-        name: Build Nightly (Linux)
-        runs-on: ubuntu-latest
+        name: Build Nightly Archives (${{ matrix.target }})
+        runs-on: ${{ matrix.os }}
         needs: test
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        permissions:
-            contents: write
+        strategy:
+            matrix:
+                include:
+                    - target: x86_64-unknown-linux-gnu
+                      os: ubuntu-latest
+                      binary: slab
+                      archive: slab-linux-x64.tar.gz
+                    - target: x86_64-apple-darwin
+                      os: macos-latest
+                      binary: slab
+                      archive: slab-macos-x64.tar.gz
+                    - target: aarch64-apple-darwin
+                      os: macos-latest
+                      binary: slab
+                      archive: slab-macos-arm64.tar.gz
+                    - target: x86_64-pc-windows-msvc
+                      os: windows-latest
+                      binary: slab.exe
+                      archive: slab-windows-x64.zip
         steps:
             - uses: actions/checkout@v4
 
@@ -99,9 +118,50 @@ jobs:
                   key: ${{ runner.os }}-deno-${{ hashFiles('**/deno.lock') }}
 
             - name: Build binary
-              run: deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --target x86_64-unknown-linux-gnu --output slab-nightly-linux-x64 packages/cli/src/main.ts
+              run: deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --target ${{ matrix.target }} --output ${{ matrix.binary }} packages/cli/src/main.ts
 
-            - name: Create/Update nightly release
+            - name: Package archive (Unix)
+              if: runner.os != 'Windows'
+              run: tar -czf ${{ matrix.archive }} ${{ matrix.binary }}
+
+            - name: Package archive (Windows)
+              if: runner.os == 'Windows'
+              shell: pwsh
+              run: Compress-Archive -Path ${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
+
+            - name: Upload nightly archive artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: nightly-${{ matrix.archive }}
+                  path: ${{ matrix.archive }}
+
+    release-nightly:
+        name: Upload Nightly Release Assets
+        runs-on: ubuntu-latest
+        needs: build-nightly
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Download nightly artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: nightly-*
+                  path: artifacts
+                  merge-multiple: true
+
+            - name: Generate nightly checksums
+              run: |
+                  rm -f artifacts/checksums-nightly.txt
+                  for file in artifacts/*.tar.gz artifacts/*.zip; do
+                    if [ -f "$file" ]; then
+                      shasum -a 256 "$file" >> artifacts/checksums-nightly.txt
+                    fi
+                  done
+
+            - name: Upload nightly release assets
               uses: softprops/action-gh-release@v1
               with:
                   tag_name: nightly
@@ -110,12 +170,9 @@ jobs:
                       Nightly build from main branch
 
                       Commit: ${{ github.sha }}
-                      Date: ${{ github.event.head_commit.timestamp }}
-                  files: slab-nightly-linux-x64
+                  files: artifacts/*
                   prerelease: true
                   draft: false
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     build-release:
         name: Build Release (${{ matrix.target }})
@@ -127,16 +184,20 @@ jobs:
                 include:
                     - target: x86_64-unknown-linux-gnu
                       os: ubuntu-latest
-                      artifact: slab-linux-x64
+                      binary: slab
+                      archive: slab-linux-x64.tar.gz
                     - target: x86_64-apple-darwin
                       os: macos-latest
-                      artifact: slab-macos-x64
+                      binary: slab
+                      archive: slab-macos-x64.tar.gz
                     - target: aarch64-apple-darwin
                       os: macos-latest
-                      artifact: slab-macos-arm64
+                      binary: slab
+                      archive: slab-macos-arm64.tar.gz
                     - target: x86_64-pc-windows-msvc
                       os: windows-latest
-                      artifact: slab-windows-x64.exe
+                      binary: slab.exe
+                      archive: slab-windows-x64.zip
         steps:
             - uses: actions/checkout@v4
 
@@ -153,13 +214,22 @@ jobs:
                   key: ${{ runner.os }}-deno-${{ hashFiles('**/deno.lock') }}
 
             - name: Build binary
-              run: deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --target ${{ matrix.target }} --output ${{ matrix.artifact }} packages/cli/src/main.ts
+              run: deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --target ${{ matrix.target }} --output ${{ matrix.binary }} packages/cli/src/main.ts
+
+            - name: Package archive (Unix)
+              if: runner.os != 'Windows'
+              run: tar -czf ${{ matrix.archive }} ${{ matrix.binary }}
+
+            - name: Package archive (Windows)
+              if: runner.os == 'Windows'
+              shell: pwsh
+              run: Compress-Archive -Path ${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: ${{ matrix.artifact }}
-                  path: ${{ matrix.artifact }}
+                  name: ${{ matrix.archive }}
+                  path: ${{ matrix.archive }}
 
     release:
         name: Upload Release Assets
@@ -176,8 +246,98 @@ jobs:
               with:
                   path: artifacts
 
+            - name: Generate checksums
+              run: |
+                  shopt -s globstar
+                  rm -f artifacts/checksums.txt
+                  for file in artifacts/**/*.tar.gz artifacts/**/*.zip; do
+                    if [ -f "$file" ]; then
+                      shasum -a 256 "$file" >> artifacts/checksums.txt
+                    fi
+                  done
+
             - name: Upload release assets
               uses: softprops/action-gh-release@v1
               with:
                   files: artifacts/**/*
                   generate_release_notes: true
+
+    publish-homebrew:
+        name: Publish Homebrew Formula
+        runs-on: ubuntu-latest
+        needs: release
+        if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')
+        steps:
+            - name: Download release archives
+              env:
+                  TAG: ${{ github.event.release.tag_name }}
+                  OWNER: ${{ github.repository_owner }}
+              run: |
+                  curl -fsSL -o slab-macos-arm64.tar.gz "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-arm64.tar.gz"
+                  curl -fsSL -o slab-macos-x64.tar.gz "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-x64.tar.gz"
+                  curl -fsSL -o slab-linux-x64.tar.gz "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-linux-x64.tar.gz"
+
+            - name: Calculate checksums
+              id: checksums
+              run: |
+                  echo "macos_arm64=$(shasum -a 256 slab-macos-arm64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+                  echo "macos_x64=$(shasum -a 256 slab-macos-x64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+                  echo "linux_x64=$(shasum -a 256 slab-linux-x64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+            - name: Clone tap repository
+              env:
+                  OWNER: ${{ github.repository_owner }}
+                  TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+              run: git clone "https://x-access-token:${TOKEN}@github.com/${OWNER}/homebrew-tap.git" tap
+
+            - name: Update formula
+              env:
+                  TAG: ${{ github.event.release.tag_name }}
+                  VERSION: ${{ github.event.release.tag_name }}
+                  OWNER: ${{ github.repository_owner }}
+                  SHA_MACOS_ARM64: ${{ steps.checksums.outputs.macos_arm64 }}
+                  SHA_MACOS_X64: ${{ steps.checksums.outputs.macos_x64 }}
+                  SHA_LINUX_X64: ${{ steps.checksums.outputs.linux_x64 }}
+              run: |
+                  VERSION="${VERSION#v}"
+                  mkdir -p tap/Formula
+                  cat > tap/Formula/slab.rb <<EOF
+                  class Slab < Formula
+                    desc "Skill Lab CLI"
+                    homepage "https://github.com/${OWNER}/skill-lab"
+                    version "${VERSION}"
+                    license "MIT"
+
+                    on_macos do
+                      if Hardware::CPU.arm?
+                        url "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-arm64.tar.gz"
+                        sha256 "${SHA_MACOS_ARM64}"
+                      else
+                        url "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-x64.tar.gz"
+                        sha256 "${SHA_MACOS_X64}"
+                      end
+                    end
+
+                    on_linux do
+                      url "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-linux-x64.tar.gz"
+                      sha256 "${SHA_LINUX_X64}"
+                    end
+
+                    def install
+                      bin.install "slab"
+                    end
+                  end
+                  EOF
+
+            - name: Commit and push formula
+              working-directory: tap
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add Formula/slab.rb
+                  if git diff --staged --quiet; then
+                    echo "No formula changes"
+                    exit 0
+                  fi
+                  git commit -m "chore: update slab formula for ${{ github.event.release.tag_name }}"
+                  git push

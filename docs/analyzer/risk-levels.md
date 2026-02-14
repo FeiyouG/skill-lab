@@ -1,6 +1,6 @@
 # Risk Levels
 
-Analyzer results include a score and a `riskLevel` label:
+Analyzer results include a numeric score and a `riskLevel` label:
 
 - `safe`
 - `caution`
@@ -18,4 +18,4 @@ Each risk signal has one severity:
 - `warning`
 - `critical`
 
-Prioritize remediation for `critical` first, then `warning`.
+Prioritize remediation for `critical` signals first, then `warning`.

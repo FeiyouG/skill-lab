@@ -1,0 +1,6 @@
+{
+    "imports": {
+        "@FeiyouG/skill-lab": "../packages/skillreader/mod.ts",
+        "skill-lab/shared": "../packages/shared/mod.ts"
+    }
+}

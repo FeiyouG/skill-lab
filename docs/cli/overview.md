@@ -1,11 +1,11 @@
 # CLI Overview
 
-`slab` is the Skill Lab CLI.
+`slab` is the command-line interface for running Skill Lab analysis.
 
 ## Commands
 
 ### [Analyze](/cli/commands/analyze)
 
-`slab analyze <paht-or-github-url>`
+`slab analyze <path-or-github-url>`
 
-Run static analyzer against a skill from local filesystem or GitHub.
+Analyze a skill from local filesystem or GitHub and return permission and risk output.

@@ -1,25 +1,38 @@
 # CLI Installation
 
-## Run during development
+## Homebrew (recommended)
 
 ```bash
-deno task --cwd packages/cli dev
+brew tap feiyoug/tap/slab
+```
+
+or
+
+```bash
+brew tap feiyoug/tap
+brew install slab
+```
+
+Verify installation:
+
+```bash
+slab --help
+```
+
+## Build from source
+
+```bash
+deno task cli:dev
 ```
 
 ## Build executable
 
 ```bash
-deno task --cwd packages/cli build
+deno task cli:build
 ```
 
 ## Install command locally
 
 ```bash
-deno task --cwd packages/cli install
-```
-
-After install, verify:
-
-```bash
-slab --help
+deno task cli:install
 ```

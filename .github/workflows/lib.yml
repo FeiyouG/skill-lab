@@ -4,6 +4,8 @@ on:
     push:
         branches: [main]
         paths:
+            - "scripts/**"
+            - "deno.json"
             - "packages/skillreader/**"
             - "packages/analyzer/**"
             - "packages/shared/**"
@@ -11,10 +13,14 @@ on:
     pull_request:
         branches: [main]
         paths:
+            - "scripts/**"
+            - "deno.json"
             - "packages/skillreader/**"
             - "packages/analyzer/**"
             - "packages/shared/**"
             - ".github/workflows/lib.yml"
+    release:
+        types: [published]
 
 jobs:
     test:
@@ -53,10 +59,11 @@ jobs:
             - name: Analyzer tests
               run: deno task analyzer:test
 
-    build:
-        name: Build Library (Placeholder)
+    npm-build:
+        name: Build npm package
         runs-on: ubuntu-latest
         needs: test
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
         steps:
             - uses: actions/checkout@v4
 
@@ -72,6 +79,49 @@ jobs:
                       ~/.deno
                   key: ${{ runner.os }}-deno-${{ hashFiles('**/deno.lock') }}
 
-            - name: Placeholder build step
-              run: |
-                  echo "TODO: build skill-lab npm package (skillreader + analyzer)"
+            - name: Build npm output
+              run: deno task npm:build
+
+            - name: Pack npm tarball
+              run: npm pack ./npm
+
+            - name: Upload npm artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: skill-lab-npm
+                  path: |
+                      npm
+                      *.tgz
+
+    npm-publish:
+        name: Publish npm package
+        runs-on: ubuntu-latest
+        needs: npm-build
+        if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'v')
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: denoland/setup-deno@v2
+              with:
+                  deno-version: v2.x
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  registry-url: https://registry.npmjs.org
+
+            - name: Cache Deno dependencies
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/deno
+                      ~/.deno
+                  key: ${{ runner.os }}-deno-${{ hashFiles('**/deno.lock') }}
+
+            - name: Build npm output for release tag
+              run: deno task npm:build -- ${{ github.event.release.tag_name }}
+
+            - name: Publish to npm
+              run: npm publish ./npm --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
