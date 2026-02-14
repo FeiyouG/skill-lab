@@ -37,6 +37,35 @@ Build npm output locally:
 deno task npm:build
 ```
 
+## ast-grep runtime and parser bundling
+
+The compiled CLI relies on ast-grep runtime registration data from
+`packages/analyzer/astgrep/registry.ts`.
+
+This registry is the single source of truth for:
+
+- development-time ast-grep language registration
+- bundled parser filenames used at runtime in compiled artifacts
+- parser tarball URLs used by release/nightly build packaging
+
+When updating ast-grep language/parser versions:
+
+1. Update entries in `packages/analyzer/astgrep/registry.ts`.
+2. Verify parser fetch script output:
+
+   ```bash
+   deno run -A scripts/fetch_astgrep_parsers.ts --parser-prebuild prebuild-macOS-ARM64 --out-dir /tmp/astgrep-parsers
+   ```
+
+3. Run analyzer checks/tests:
+
+   ```bash
+   deno task analyzer:check
+   deno task analyzer:test
+   ```
+
+Design notes and trade-offs are documented in `docs/guide/astgrep-runtime.md`.
+
 ## Docs development
 
 Run docs locally:

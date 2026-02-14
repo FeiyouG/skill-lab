@@ -19,20 +19,55 @@ Verify installation:
 slab --help
 ```
 
-## Build from source
+## Download from Releases
+
+Download the archive for your platform from:
+
+- macOS ARM64: `slab-macos-arm64.tar.gz`
+- Linux x64: `slab-linux-x64.tar.gz`
+- Windows x64: `slab-windows-x64.zip`
+
+Release page: `https://github.com/feiyoug/skill-lab/releases`
+
+Extract and install (macOS/Linux):
 
 ```bash
-deno task cli:dev
+mkdir -p ~/.local/lib/slab
+tar -xzf slab-macos-arm64.tar.gz -C ~/.local/lib/slab
+mkdir -p ~/.local/bin
+ln -sf ~/.local/lib/slab/slab ~/.local/bin/slab
 ```
 
-## Build executable
+Verify installation:
+
+```bash
+slab --help
+```
+
+On macOS, if Gatekeeper blocks `slab-bin` or `*-parser.so`, run once:
+
+```bash
+xattr -dr com.apple.quarantine ~/.local/lib/slab
+```
+
+For details about the runtime layout, see [development notes](/development/astgrep)
+
+## Install from source (Deno)
+
+```bash
+git clone https://github.com/feiyoug/skill-lab.git
+cd skill-lab
+deno task cli:install
+```
+
+Verify installation:
+
+```bash
+slab --help
+```
+
+## Build executable from source
 
 ```bash
 deno task cli:build
-```
-
-## Install command locally
-
-```bash
-deno task cli:install
 ```

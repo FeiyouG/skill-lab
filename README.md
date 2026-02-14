@@ -26,6 +26,8 @@ brew install slab
 slab --help
 ```
 
+For other install options, please see our [docs](https://skill-lab.pages.dev/cli/installation).
+
 ## Install the library
 
 #### npm
@@ -60,8 +62,7 @@ slab analyze ./path/to/skill --json
 
 ## Documentation
 
-- Docs site: `docs/`
-- Start with `docs/guide/getting-started.md`
+- Docs site: `https://skill-lab.pages.dev`
 
 ## Repository layout
 

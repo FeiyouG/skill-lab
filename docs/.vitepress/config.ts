@@ -53,6 +53,13 @@ export default defineConfig({
                     text: "Examples",
                     items: [{ text: "Historical Git Ref", link: "/examples/coming-soon" }],
                 },
+                {
+                    text: "Development",
+                    collapsed: true,
+                    items: [
+                        { text: "@ast-grep/napi Runtime", link: "/development/astgrep.md" },
+                    ],
+                },
             ],
         },
         socialLinks: [{ icon: "github", link: "https://github.com/FeiyouG/skill-lab" }],

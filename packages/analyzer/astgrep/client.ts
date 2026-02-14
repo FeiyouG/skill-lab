@@ -1,9 +1,4 @@
 import { parse, registerDynamicLanguage } from "@ast-grep/napi";
-import * as bashRegistration from "@ast-grep/lang-bash";
-import * as javascriptRegistration from "@ast-grep/lang-javascript";
-import * as markdownRegistration from "@ast-grep/lang-markdown";
-import * as pythonRegistration from "@ast-grep/lang-python";
-import * as typescriptRegistration from "@ast-grep/lang-typescript";
 import type {
     Finding,
     PermissionScope,
@@ -11,11 +6,16 @@ import type {
     ReferenceType,
     RuleRiskMapping,
 } from "skill-lab/shared";
+import {
+    type AstGrepGrammar,
+    buildBundledRegistrations,
+    buildDevRegistrations,
+} from "./registry.ts";
 
 export type AstGrepRule = {
     id: string;
     description: string;
-    grammar: "javascript" | "typescript" | "python" | "bash" | "markdown";
+    grammar: AstGrepGrammar;
     patterns: string[];
     permission: {
         tool: string;
@@ -31,14 +31,6 @@ export type AstGrepMatch = {
     line: number;
     lineEnd?: number;
     extracted: Record<string, unknown>;
-};
-
-type DynamicLangRegistration = {
-    libraryPath: string;
-    extensions: string[];
-    languageSymbol?: string;
-    metaVarChar?: string;
-    expandoChar?: string;
 };
 
 export class AstGrepClient {
@@ -140,13 +132,13 @@ export class AstGrepClient {
 
     private ensureLanguageRegistry(): void {
         if (this.isLanguageRegistryInitialized) return;
-        registerDynamicLanguage({
-            bash: bashRegistration.default as unknown as DynamicLangRegistration,
-            javascript: javascriptRegistration.default as unknown as DynamicLangRegistration,
-            typescript: typescriptRegistration.default as unknown as DynamicLangRegistration,
-            python: pythonRegistration.default as unknown as DynamicLangRegistration,
-            markdown: markdownRegistration.default as unknown as DynamicLangRegistration,
-        });
+
+        const bundledResourceDir = Deno.env.get("SKILL_LAB_AST_GREP_RESOURCES_DIR");
+        const registrations = bundledResourceDir
+            ? buildBundledRegistrations(bundledResourceDir)
+            : buildDevRegistrations();
+
+        registerDynamicLanguage(registrations);
         this.isLanguageRegistryInitialized = true;
     }
 

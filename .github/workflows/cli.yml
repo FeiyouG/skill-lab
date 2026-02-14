@@ -5,13 +5,17 @@ on:
         branches: ["**"]
         paths:
             - "packages/cli/**"
+            - "packages/analyzer/astgrep/**"
             - "packages/shared/**"
+            - "scripts/**"
             - ".github/workflows/cli.yml"
     pull_request:
         branches: [main]
         paths:
             - "packages/cli/**"
+            - "packages/analyzer/astgrep/**"
             - "packages/shared/**"
+            - "scripts/**"
             - ".github/workflows/cli.yml"
     release:
         types: [published]
@@ -90,18 +94,17 @@ jobs:
                       os: ubuntu-latest
                       binary: slab
                       archive: slab-linux-x64.tar.gz
-                    - target: x86_64-apple-darwin
-                      os: macos-latest
-                      binary: slab
-                      archive: slab-macos-x64.tar.gz
+                      parser_prebuild: prebuild-Linux-X64
                     - target: aarch64-apple-darwin
                       os: macos-latest
                       binary: slab
                       archive: slab-macos-arm64.tar.gz
+                      parser_prebuild: prebuild-macOS-ARM64
                     - target: x86_64-pc-windows-msvc
                       os: windows-latest
                       binary: slab.exe
                       archive: slab-windows-x64.zip
+                      parser_prebuild: ""
         steps:
             - uses: actions/checkout@v4
 
@@ -120,9 +123,40 @@ jobs:
             - name: Build binary
               run: deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --target ${{ matrix.target }} --output ${{ matrix.binary }} packages/cli/src/main.ts
 
+            - name: Prepare runtime bundle (Unix)
+              if: runner.os != 'Windows'
+              run: |
+                  mkdir -p bundle/resources/ast-grep
+                  mv ${{ matrix.binary }} bundle/slab-bin
+
+                  cat > bundle/slab <<'EOF'
+                  #!/usr/bin/env bash
+                  set -euo pipefail
+
+                  SCRIPT_PATH="${BASH_SOURCE[0]}"
+                  while [ -L "$SCRIPT_PATH" ]; do
+                    DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+                    TARGET="$(readlink "$SCRIPT_PATH")"
+                    if [[ "$TARGET" == /* ]]; then
+                      SCRIPT_PATH="$TARGET"
+                    else
+                      SCRIPT_PATH="$DIR/$TARGET"
+                    fi
+                  done
+                  SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+
+                  export NAPI_RS_FORCE_WASI="1"
+                  export SKILL_LAB_AST_GREP_RESOURCES_DIR="${SKILL_LAB_AST_GREP_RESOURCES_DIR:-$SCRIPT_DIR/resources/ast-grep}"
+
+                  exec "$SCRIPT_DIR/slab-bin" "$@"
+                  EOF
+                  chmod +x bundle/slab
+
+                  deno run -A scripts/fetch_astgrep_parsers.ts --parser-prebuild "${{ matrix.parser_prebuild }}" --out-dir bundle/resources/ast-grep
+
             - name: Package archive (Unix)
               if: runner.os != 'Windows'
-              run: tar -czf ${{ matrix.archive }} ${{ matrix.binary }}
+              run: tar -czf ${{ matrix.archive }} -C bundle .
 
             - name: Package archive (Windows)
               if: runner.os == 'Windows'
@@ -186,18 +220,17 @@ jobs:
                       os: ubuntu-latest
                       binary: slab
                       archive: slab-linux-x64.tar.gz
-                    - target: x86_64-apple-darwin
-                      os: macos-latest
-                      binary: slab
-                      archive: slab-macos-x64.tar.gz
+                      parser_prebuild: prebuild-Linux-X64
                     - target: aarch64-apple-darwin
                       os: macos-latest
                       binary: slab
                       archive: slab-macos-arm64.tar.gz
+                      parser_prebuild: prebuild-macOS-ARM64
                     - target: x86_64-pc-windows-msvc
                       os: windows-latest
                       binary: slab.exe
                       archive: slab-windows-x64.zip
+                      parser_prebuild: ""
         steps:
             - uses: actions/checkout@v4
 
@@ -216,9 +249,40 @@ jobs:
             - name: Build binary
               run: deno compile --allow-net --allow-read --allow-write --allow-env --allow-ffi --target ${{ matrix.target }} --output ${{ matrix.binary }} packages/cli/src/main.ts
 
+            - name: Prepare runtime bundle (Unix)
+              if: runner.os != 'Windows'
+              run: |
+                  mkdir -p bundle/resources/ast-grep
+                  mv ${{ matrix.binary }} bundle/slab-bin
+
+                  cat > bundle/slab <<'EOF'
+                  #!/usr/bin/env bash
+                  set -euo pipefail
+
+                  SCRIPT_PATH="${BASH_SOURCE[0]}"
+                  while [ -L "$SCRIPT_PATH" ]; do
+                    DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+                    TARGET="$(readlink "$SCRIPT_PATH")"
+                    if [[ "$TARGET" == /* ]]; then
+                      SCRIPT_PATH="$TARGET"
+                    else
+                      SCRIPT_PATH="$DIR/$TARGET"
+                    fi
+                  done
+                  SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+
+                  export NAPI_RS_FORCE_WASI="1"
+                  export SKILL_LAB_AST_GREP_RESOURCES_DIR="${SKILL_LAB_AST_GREP_RESOURCES_DIR:-$SCRIPT_DIR/resources/ast-grep}"
+
+                  exec "$SCRIPT_DIR/slab-bin" "$@"
+                  EOF
+                  chmod +x bundle/slab
+
+                  deno run -A scripts/fetch_astgrep_parsers.ts --parser-prebuild "${{ matrix.parser_prebuild }}" --out-dir bundle/resources/ast-grep
+
             - name: Package archive (Unix)
               if: runner.os != 'Windows'
-              run: tar -czf ${{ matrix.archive }} ${{ matrix.binary }}
+              run: tar -czf ${{ matrix.archive }} -C bundle .
 
             - name: Package archive (Windows)
               if: runner.os == 'Windows'
@@ -274,14 +338,12 @@ jobs:
                   OWNER: ${{ github.repository_owner }}
               run: |
                   curl -fsSL -o slab-macos-arm64.tar.gz "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-arm64.tar.gz"
-                  curl -fsSL -o slab-macos-x64.tar.gz "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-x64.tar.gz"
                   curl -fsSL -o slab-linux-x64.tar.gz "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-linux-x64.tar.gz"
 
             - name: Calculate checksums
               id: checksums
               run: |
                   echo "macos_arm64=$(shasum -a 256 slab-macos-arm64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
-                  echo "macos_x64=$(shasum -a 256 slab-macos-x64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
                   echo "linux_x64=$(shasum -a 256 slab-linux-x64.tar.gz | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
             - name: Clone tap repository
@@ -296,7 +358,6 @@ jobs:
                   VERSION: ${{ github.event.release.tag_name }}
                   OWNER: ${{ github.repository_owner }}
                   SHA_MACOS_ARM64: ${{ steps.checksums.outputs.macos_arm64 }}
-                  SHA_MACOS_X64: ${{ steps.checksums.outputs.macos_x64 }}
                   SHA_LINUX_X64: ${{ steps.checksums.outputs.linux_x64 }}
               run: |
                   VERSION="${VERSION#v}"
@@ -309,13 +370,11 @@ jobs:
                     license "MIT"
 
                     on_macos do
-                      if Hardware::CPU.arm?
-                        url "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-arm64.tar.gz"
-                        sha256 "${SHA_MACOS_ARM64}"
-                      else
-                        url "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-x64.tar.gz"
-                        sha256 "${SHA_MACOS_X64}"
+                      if Hardware::CPU.intel?
+                        odie "slab currently ships macOS binaries for Apple Silicon only"
                       end
+                      url "https://github.com/${OWNER}/skill-lab/releases/download/${TAG}/slab-macos-arm64.tar.gz"
+                      sha256 "${SHA_MACOS_ARM64}"
                     end
 
                     on_linux do
@@ -324,7 +383,8 @@ jobs:
                     end
 
                     def install
-                      bin.install "slab"
+                      libexec.install Dir["*"]
+                      bin.install_symlink libexec/"slab"
                     end
                   end
                   EOF
