@@ -6,6 +6,7 @@ import type {
     Finding,
     Frontmatter,
     Permission,
+    Reference,
     ReferenceType,
     Risk,
 } from "skill-lab/shared";
@@ -30,7 +31,7 @@ export type AnalyzerState = {
     warnings: string[];
     metadata: {
         scannedFiles: string[];
-        skippedFiles: Array<{ path: string; reason: string }>;
+        skippedFiles: Array<{ path: string; reason: string, referenceBy?: Reference}>;
         rulesUsed: string[];
         config: AnalyzerConfig;
     };

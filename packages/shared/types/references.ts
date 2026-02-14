@@ -19,6 +19,7 @@ export type FileRole =
     | "reference"
     | "config"
     | "script"
+    | "library" // unresolved imported dependency (package/module not in skill files)
     | "regular"
     | "host-fs"; // path targeting the host filesystem (not a skill-local file)
 

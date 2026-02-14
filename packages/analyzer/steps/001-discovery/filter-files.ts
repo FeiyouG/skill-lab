@@ -1,5 +1,5 @@
 import type { SkillFile } from "@FeiyouG/skill-lab";
-import type { FileReference } from "skill-lab/shared";
+import type { FileReference, FileRole } from "skill-lab/shared";
 
 export function filterScanQueue(input: {
     queue: FileReference[];
@@ -11,7 +11,7 @@ export function filterScanQueue(input: {
     const skipped: Array<{ path: string; reason: string }> = [];
 
     const ordered = [...input.queue].sort((a, b) => {
-        const roleRank = (value: FileReference["role"]): number => {
+        const roleRank = (value: FileRole): number => {
             switch (value) {
                 case "entrypoint":
                     return 0;
@@ -23,10 +23,12 @@ export function filterScanQueue(input: {
                     return 3;
                 case "script":
                     return 4;
-                case "config":
+                case "library":
                     return 5;
-                default:
+                case "config":
                     return 6;
+                default:
+                    return 7;
             }
         };
 

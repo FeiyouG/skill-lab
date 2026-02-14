@@ -1,6 +1,5 @@
 import { DEFAULT_SKILL_VERSION, FRONTMATTER_SUPPORTED_FIELDS } from "../../config.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
-import type { FileReference } from "skill-lab/shared";
 import { discoverReferencedFiles } from "./discover-files.ts";
 import { filterScanQueue } from "./filter-files.ts";
 
@@ -44,19 +43,16 @@ export async function run001Discovery(
         maxScanDepth: state.metadata.config.maxScanDepth,
     });
 
-    const queueWithRoot: FileReference[] = [
-        {
-            path: skillMdPath,
-            sourceType: "local",
-            fileType: "markdown",
-            role: "entrypoint",
-            depth: 0,
-        },
-        ...discovered,
-    ];
+    discovered.push({
+        path: skillMdPath,
+        sourceType: "local",
+        fileType: "markdown",
+        role: "entrypoint",
+        depth: 0,
+    })
 
     const filtered = filterScanQueue({
-        queue: queueWithRoot,
+        queue: discovered,
         allFiles: files,
         maxFileCount: state.metadata.config.maxFileCount,
         maxFileSize: state.metadata.config.maxFileSize,

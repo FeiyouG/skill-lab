@@ -86,23 +86,26 @@ export async function discoverReferencedFiles(
                     referencedBy: current.referencedBy,
                 };
 
-                const existsInSkill = input.allFiles.some((file) => file.path === normalizedPath);
-                if (existsInSkill) {
-                    const resolvedFileType = getFileType(normalizedPath);
-                    const localEntry: FileReference = {
-                        path: normalizedPath,
-                        sourceType: "local",
-                        fileType: resolvedFileType,
-                        role: getFileRole(normalizedPath),
-                        depth: current.depth + 1,
-                        discoveryMethod: absoluteRef.via,
-                        referencedBy: referenceFromCurrent,
-                    };
-                    discovered.set(normalizedPath, localEntry);
+                const existsInSkill = input.allFiles.filter((file) => file.path.includes(normalizedPath));
+                if (existsInSkill.length > 0) {
+                    for (const file of existsInSkill) {
+                        if (discovered.has(file.path)) continue;
 
-                    if (resolvedFileType === "markdown" || resolvedFileType === "text") {
+                        const resolvedFileType = getFileType(file.path);
+                        const localEntry: FileReference = {
+                            path: file.path,
+                            sourceType: "local",
+                            fileType: resolvedFileType,
+                            role: getFileRole(file.path),
+                            depth: current.depth + 1,
+                            discoveryMethod: absoluteRef.via,
+                            referencedBy: referenceFromCurrent,
+                        };
+                        discovered.set(file.path, localEntry);
+
+                        // Keep scaning for files that are referenced within the skill repo
                         queue.push({
-                            path: normalizedPath,
+                            path: file.path,
                             depth: current.depth + 1,
                             referencedBy: localEntry.referencedBy,
                         });
@@ -129,6 +132,19 @@ export async function discoverReferencedFiles(
                         sourceType: "external",
                         fileType: "unknown",
                         role: "regular",
+                        depth: current.depth + 1,
+                        discoveryMethod: absoluteRef.via,
+                        referencedBy: referenceFromCurrent,
+                    });
+                    continue;
+                }
+
+                if (absoluteRef.via === "import" || absoluteRef.via === "source") {
+                    discovered.set(normalizedPath, {
+                        path: normalizedPath,
+                        sourceType: "external",
+                        fileType: "unknown",
+                        role: "library",
                         depth: current.depth + 1,
                         discoveryMethod: absoluteRef.via,
                         referencedBy: referenceFromCurrent,

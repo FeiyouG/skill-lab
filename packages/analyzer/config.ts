@@ -6,7 +6,7 @@ export const DEFAULT_SKILL_VERSION = "0.0.1";
 export const DEFAULT_CONFIG: AnalyzerConfig = {
     maxFileSize: 1_000_000,
     maxFileCount: 100,
-    maxScanDepth: 2,
+    maxScanDepth: 5
 };
 
 export const ALLOWED_TOOLS_MAPPING: Record<

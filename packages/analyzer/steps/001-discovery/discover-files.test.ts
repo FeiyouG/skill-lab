@@ -178,3 +178,54 @@ scripts/package_skill.py <path/to/skill-folder>
         assertEquals(discoveredPaths.includes("scripts/package_skill.py"), true);
     },
 );
+
+Deno.test(
+    "discoverReferencedFiles - keeps unresolved imports as external library refs",
+    async () => {
+        const content = `import requests\nfrom pathlib import Path\n`;
+        const allFiles: SkillFile[] = [makeSkillFile("scripts/main.py")];
+
+        const discovered = await discoverReferencedFiles(makeContext(), {
+            startQueue: [{ path: "scripts/main.py", depth: 0 }],
+            allFiles,
+            readTextFile: (path: string): Promise<string | null> => {
+                if (path === "scripts/main.py") return Promise.resolve(content);
+                return Promise.resolve(null);
+            },
+            maxScanDepth: 2,
+        });
+
+        const libraries = discovered.filter((item) =>
+            item.sourceType === "external" && item.role === "library"
+        );
+        const paths = libraries.map((item) => item.path);
+
+        assertEquals(paths.includes("requests"), true);
+        assertEquals(paths.includes("pathlib"), true);
+    },
+);
+
+Deno.test(
+    "discoverReferencedFiles - keeps unresolved bash source includes as library refs",
+    async () => {
+        const content = `source ./lib/common.sh`;
+        const allFiles: SkillFile[] = [makeSkillFile("scripts/main.sh")];
+
+        const discovered = await discoverReferencedFiles(makeContext(), {
+            startQueue: [{ path: "scripts/main.sh", depth: 0 }],
+            allFiles,
+            readTextFile: (path: string): Promise<string | null> => {
+                if (path === "scripts/main.sh") return Promise.resolve(content);
+                return Promise.resolve(null);
+            },
+            maxScanDepth: 2,
+        });
+
+        const sourceLibrary = discovered.find((item) =>
+            item.path === "./lib/common.sh" && item.sourceType === "external" &&
+            item.role === "library"
+        );
+
+        assertEquals(Boolean(sourceLibrary), true);
+    },
+);

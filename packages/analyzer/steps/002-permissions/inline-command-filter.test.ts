@@ -126,3 +126,36 @@ Deno.test("run002Permissions keeps true inline command detection", async () => {
     const gitPermissions = next.permissions.filter((permission) => permission.tool === "git");
     assertEquals(gitPermissions.length > 0, true);
 });
+
+Deno.test("run002Permissions warns and skips external library refs", async () => {
+    const content = "# Skill";
+    const state = createBaseState(content);
+    state.scanQueue.push({
+        path: "requests",
+        sourceType: "external",
+        fileType: "unknown",
+        role: "library",
+        depth: 1,
+        discoveryMethod: "import",
+        referencedBy: {
+            file: "scripts/main.py",
+            line: 1,
+            type: "content",
+        },
+    });
+
+    const next = await run002Permissions(state, createContext({ "SKILL.md": content }));
+
+    assertEquals(
+        next.warnings.some((warning) =>
+            warning.includes("External library/import not analyzed yet: requests")
+        ),
+        true,
+    );
+    assertEquals(
+        next.metadata.skippedFiles.some((entry) =>
+            entry.path === "requests" && entry.reason === "external_library_dependency"
+        ),
+        true,
+    );
+});

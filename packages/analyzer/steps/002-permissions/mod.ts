@@ -23,6 +23,22 @@ export async function run002Permissions(
         if (fileRef.sourceType === "external") {
             if (fileRef.role === "host-fs") {
                 next = addHostFsPermission(next, fileRef.path, fileRef.referencedBy);
+            } else if (fileRef.role === "library") {
+                next = {
+                    ...next,
+                    warnings: [
+                        ...next.warnings,
+                        `External library/import not analyzed yet: ${fileRef.path}`,
+                    ],
+                    metadata: {
+                        ...next.metadata,
+                        skippedFiles: [...next.metadata.skippedFiles, {
+                            path: fileRef.path,
+                            reason: "external_library_dependency",
+                            referenceBy: fileRef.referencedBy
+                        }],
+                    },
+                };
             } else if (
                 fileRef.discoveryMethod === "markdown-link" || fileRef.discoveryMethod === "url" ||
                 fileRef.discoveryMethod === undefined
@@ -38,6 +54,7 @@ export async function run002Permissions(
                         skippedFiles: [...next.metadata.skippedFiles, {
                             path: fileRef.path,
                             reason: "external_reference",
+                            referenceBy: fileRef.referencedBy
                         }],
                     },
                 };
@@ -48,10 +65,7 @@ export async function run002Permissions(
         const scanTargets = await resolveScanTargets(fileRef, context);
         if (scanTargets.length === 0) continue;
 
-        if (
-            !RULES_BY_FILETYPE[fileRef.fileType] && fileRef.fileType !== "markdown" &&
-            fileRef.fileType !== "text"
-        ) {
+        if (!RULES_BY_FILETYPE[fileRef.fileType]) {
             next = {
                 ...next,
                 warnings: [
@@ -63,6 +77,7 @@ export async function run002Permissions(
                     skippedFiles: [...next.metadata.skippedFiles, {
                         path: fileRef.path,
                         reason: `unsupported_type_${fileRef.fileType}`,
+                        referenceBy: fileRef.referencedBy
                     }],
                 },
             };
