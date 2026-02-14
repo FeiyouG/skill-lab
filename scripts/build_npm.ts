@@ -17,7 +17,7 @@ await build({
         deno: true,
     },
     package: {
-        name: "@FeiyouG/skill-lab",
+        name: "@feiyoug/skill-lab",
         version,
         description: "Skill Lab library exports for analyzer and skill readers",
         license: "MIT",
@@ -30,6 +30,8 @@ await build({
         },
     },
 });
+
+await Deno.copyFile(join(ROOT_DIR, "README.md"), join(OUTPUT_DIR, "README.md"));
 
 function normalizeVersion(input: string): string {
     const cleaned = input.trim().replace(/^v/, "");
