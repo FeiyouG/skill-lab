@@ -20,28 +20,16 @@
     "jsr:@ts-morph/bootstrap@0.27": "0.27.0",
     "jsr:@ts-morph/common@0.27": "0.27.0",
     "jsr:@zip-js/zip-js@^2.8.20": "2.8.20",
-    "npm:@ast-grep/lang-bash@*": "0.0.7",
-    "npm:@ast-grep/lang-bash@^0.0.7": "0.0.7",
-    "npm:@ast-grep/lang-javascript@*": "0.0.6",
-    "npm:@ast-grep/lang-javascript@^0.0.6": "0.0.6",
-    "npm:@ast-grep/lang-markdown@*": "0.0.5",
-    "npm:@ast-grep/lang-markdown@^0.0.5": "0.0.5",
-    "npm:@ast-grep/lang-python@*": "0.0.5",
-    "npm:@ast-grep/lang-python@^0.0.5": "0.0.5",
-    "npm:@ast-grep/lang-typescript@*": "0.0.6",
-    "npm:@ast-grep/lang-typescript@^0.0.6": "0.0.6",
-    "npm:@ast-grep/napi@*": "0.40.5",
-    "npm:@ast-grep/napi@~0.40.5": "0.40.5",
+    "npm:@feiyoug/skill-lab@*": "0.0.1",
     "npm:@shikijs/transformers@^2.5.0": "2.5.0",
-    "npm:@tree-sitter-grammars/tree-sitter-markdown@~0.3.2": "0.3.2_tree-sitter@0.22.4",
+    "npm:@tree-sitter-grammars/tree-sitter-markdown@~0.3.2": "0.3.2_tree-sitter@0.25.0",
     "npm:minisearch@^7.2.0": "7.2.0",
     "npm:shiki@^2.5.0": "2.5.0",
     "npm:tree-sitter@0.25": "0.25.0",
-    "npm:tree-sitter@~0.22.2": "0.22.4",
-    "npm:tree-sitter@~0.22.4": "0.22.4",
     "npm:vitepress@1.6.4": "1.6.4_vite@5.4.21_vue@3.5.28_focus-trap@7.8.0",
     "npm:vitepress@^1.6.4": "1.6.4_vite@5.4.21_vue@3.5.28_focus-trap@7.8.0",
-    "npm:vue@^3.5.28": "3.5.28"
+    "npm:vue@^3.5.28": "3.5.28",
+    "npm:web-tree-sitter@0.25.4": "0.25.4"
   },
   "jsr": {
     "@cliffy/command@1.0.0-rc.8": {
@@ -271,103 +259,6 @@
         "@algolia/client-common"
       ]
     },
-    "@ast-grep/lang-bash@0.0.7": {
-      "integrity": "sha512-tbPrTkmUv3YVKZZg8q51nAE5ItVVq6WzGPrJtiDKLZ3AdfRzZCOC2VgRwJBWD+VbFELqSVARKwXoQB6E8k+xug==",
-      "dependencies": [
-        "@ast-grep/setup-lang"
-      ],
-      "scripts": true
-    },
-    "@ast-grep/lang-javascript@0.0.6": {
-      "integrity": "sha512-Jp9EPa7wBSW6+YKaq0reqko8YP1s4ty+EHjn/xVHynLzEZ7/et13Bh7bpEp4xWUJAeMA3wffLJDWe27ml0e94g==",
-      "dependencies": [
-        "@ast-grep/setup-lang"
-      ],
-      "scripts": true
-    },
-    "@ast-grep/lang-markdown@0.0.5": {
-      "integrity": "sha512-wzWGYm2IEcKPb7NBR/k4b6CGBrMy4RLEPOZUS3brN3/YxXEhBQ9ZbwE2MkusV7iH19sVdiBxsNNglXL8BU7hDg==",
-      "dependencies": [
-        "@ast-grep/setup-lang"
-      ],
-      "scripts": true
-    },
-    "@ast-grep/lang-python@0.0.5": {
-      "integrity": "sha512-gbNwaCPvuyZFEG4y6zwylLRLsh1DWiOeLeZ/aWOlYRR0nxoXimuMPank6psT88rijnD6esBLWhFq6kkFhndzjQ==",
-      "dependencies": [
-        "@ast-grep/setup-lang"
-      ],
-      "scripts": true
-    },
-    "@ast-grep/lang-typescript@0.0.6": {
-      "integrity": "sha512-J7B9zyf/VrxNr/lMxbKHmNTQKsO/GdUzOFbPeLbCwI2h6f2SydUwCTfiFO8qXrcrdwkJAxkUH40/Vj2ISfUgDQ==",
-      "dependencies": [
-        "@ast-grep/setup-lang"
-      ],
-      "scripts": true
-    },
-    "@ast-grep/napi-darwin-arm64@0.40.5": {
-      "integrity": "sha512-2F072fGN0WTq7KI3okuEnkGJVEHLbi56Bw1H6NAMf7j2mJJeQWsRyGOMcyNnUXZDeNdvoMH0OB2a5wwUegY/nQ==",
-      "os": ["darwin"],
-      "cpu": ["arm64"]
-    },
-    "@ast-grep/napi-darwin-x64@0.40.5": {
-      "integrity": "sha512-dJMidHZhhxuLBYNi6/FKI812jQ7wcFPSKkVPwviez2D+KvYagapUMAV/4dJ7FCORfguVk8Y0jpPAlYmWRT5nvA==",
-      "os": ["darwin"],
-      "cpu": ["x64"]
-    },
-    "@ast-grep/napi-linux-arm64-gnu@0.40.5": {
-      "integrity": "sha512-nBRCbyoS87uqkaw4Oyfe5VO+SRm2B+0g0T8ME69Qry9ShMf41a2bTdpcQx9e8scZPogq+CTwDHo3THyBV71l9w==",
-      "os": ["linux"],
-      "cpu": ["arm64"]
-    },
-    "@ast-grep/napi-linux-arm64-musl@0.40.5": {
-      "integrity": "sha512-/qKsmds5FMoaEj6FdNzepbmLMtlFuBLdrAn9GIWCqOIcVcYvM1Nka8+mncfeXB/MFZKOrzQsQdPTWqrrQzXLrA==",
-      "os": ["linux"],
-      "cpu": ["arm64"]
-    },
-    "@ast-grep/napi-linux-x64-gnu@0.40.5": {
-      "integrity": "sha512-DP4oDbq7f/1A2hRTFLhJfDFR6aI5mRWdEfKfHzRItmlKsR9WlcEl1qDJs/zX9R2EEtIDsSKRzuJNfJllY3/W8Q==",
-      "os": ["linux"],
-      "cpu": ["x64"]
-    },
-    "@ast-grep/napi-linux-x64-musl@0.40.5": {
-      "integrity": "sha512-BRZUvVBPUNpWPo6Ns8chXVzxHPY+k9gpsubGTHy92Q26ecZULd/dTkWWdnvfhRqttsSQ9Pe/XQdi5+hDQ6RYcg==",
-      "os": ["linux"],
-      "cpu": ["x64"]
-    },
-    "@ast-grep/napi-win32-arm64-msvc@0.40.5": {
-      "integrity": "sha512-y95zSEwc7vhxmcrcH0GnK4ZHEBQrmrszRBNQovzaciF9GUqEcCACNLoBesn4V47IaOp4fYgD2/EhGRTIBFb2Ug==",
-      "os": ["win32"],
-      "cpu": ["arm64"]
-    },
-    "@ast-grep/napi-win32-ia32-msvc@0.40.5": {
-      "integrity": "sha512-K/u8De62iUnFCzVUs7FBdTZ2Jrgc5/DLHqjpup66KxZ7GIM9/HGME/O8aSoPkpcAeCD4TiTZ11C1i5p5H98hTg==",
-      "os": ["win32"],
-      "cpu": ["ia32"]
-    },
-    "@ast-grep/napi-win32-x64-msvc@0.40.5": {
-      "integrity": "sha512-dqm5zg/o4Nh4VOQPEpMS23ot8HVd22gG0eg01t4CFcZeuzyuSgBlOL3N7xLbz3iH2sVkk7keuBwAzOIpTqziNQ==",
-      "os": ["win32"],
-      "cpu": ["x64"]
-    },
-    "@ast-grep/napi@0.40.5": {
-      "integrity": "sha512-hJA62OeBKUQT68DD2gDyhOqJxZxycqg8wLxbqjgqSzYttCMSDL9tiAQ9abgekBYNHudbJosm9sWOEbmCDfpX2A==",
-      "optionalDependencies": [
-        "@ast-grep/napi-darwin-arm64",
-        "@ast-grep/napi-darwin-x64",
-        "@ast-grep/napi-linux-arm64-gnu",
-        "@ast-grep/napi-linux-arm64-musl",
-        "@ast-grep/napi-linux-x64-gnu",
-        "@ast-grep/napi-linux-x64-musl",
-        "@ast-grep/napi-win32-arm64-msvc",
-        "@ast-grep/napi-win32-ia32-msvc",
-        "@ast-grep/napi-win32-x64-msvc"
-      ]
-    },
-    "@ast-grep/setup-lang@0.0.6": {
-      "integrity": "sha512-aSYZNF5nGQMxnwiA3Lcc8zi0AtpGlug47ADgqCgP/2n7p922FbnW7vo1rbW4kKjW72B/3mDdN7uvYidv8JnPnw=="
-    },
     "@babel/helper-string-parser@7.27.1": {
       "integrity": "sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA=="
     },
@@ -386,6 +277,16 @@
       "dependencies": [
         "@babel/helper-string-parser",
         "@babel/helper-validator-identifier"
+      ]
+    },
+    "@deno/shim-deno-test@0.5.0": {
+      "integrity": "sha512-4nMhecpGlPi0cSzT67L+Tm+GOJqvuk8gqHBziqcUQOarnuIax1z96/gJHCSIz2Z0zhxE6Rzwb3IZXPtFh51j+w=="
+    },
+    "@deno/shim-deno@0.18.2": {
+      "integrity": "sha512-oQ0CVmOio63wlhwQF75zA4ioolPvOwAoK0yuzcS5bDC1JUvH3y1GS8xPh8EOpcoDQRU4FTG8OQfxhpR+c6DrzA==",
+      "dependencies": [
+        "@deno/shim-deno-test",
+        "which"
       ]
     },
     "@docsearch/css@3.8.2": {
@@ -521,6 +422,12 @@
       "integrity": "sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw==",
       "os": ["win32"],
       "cpu": ["x64"]
+    },
+    "@feiyoug/skill-lab@0.0.1": {
+      "integrity": "sha512-FOSBTCqhiAwkH35ChQ3c7OvY0Yr+/V3pBXDddYRCkg6E2ZmykJHJFPaOENfCp2teijf6IkqYKOgSynyvkyRuuw==",
+      "dependencies": [
+        "@deno/shim-deno"
+      ]
     },
     "@iconify-json/simple-icons@1.2.70": {
       "integrity": "sha512-CYNRCgN6nBTjN4dNkrBCjHXNR2e4hQihdsZUs/afUNFOWLSYjfihca4EFN05rRvDk4Xoy2n8tym6IxBZmcn+Qg==",
@@ -714,12 +621,12 @@
     "@shikijs/vscode-textmate@10.0.2": {
       "integrity": "sha512-83yeghZ2xxin3Nj8z1NMd/NCuca+gsYXswywDy5bHvwlWL8tpTQmzGeUuHd9FC3E/SBEMvzJRwWEOz5gGes9Qg=="
     },
-    "@tree-sitter-grammars/tree-sitter-markdown@0.3.2_tree-sitter@0.22.4": {
+    "@tree-sitter-grammars/tree-sitter-markdown@0.3.2_tree-sitter@0.25.0": {
       "integrity": "sha512-hQXCcDVvg2t4E8cn7zz6jjIBerzk9E9ZlHxJp5IrUOpY4s1YVpXJbMeWZks2/V7lmkPRnnkM8IrTbQ5ltwEOnA==",
       "dependencies": [
         "node-addon-api",
         "node-gyp-build",
-        "tree-sitter@0.22.4"
+        "tree-sitter"
       ],
       "scripts": true
     },
@@ -1025,6 +932,9 @@
     "is-what@5.5.0": {
       "integrity": "sha512-oG7cgbmg5kLYae2N5IVd3jm2s+vldjxJzK1pcu9LfpGuQ93MQSzo0okvRna+7y5ifrD+20FE8FvjusyGaz14fw=="
     },
+    "isexe@3.1.2": {
+      "integrity": "sha512-mIcis6w+JiQf3P7t7mg/35GKB4T1FQsBOtMIvuKw4YErj5RjtbhcTd5/I30fmkmGMwvI0WlzSNN+27K0QCMkAw=="
+    },
     "magic-string@0.30.21": {
       "integrity": "sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==",
       "dependencies": [
@@ -1211,14 +1121,6 @@
     "tabbable@6.4.0": {
       "integrity": "sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg=="
     },
-    "tree-sitter@0.22.4": {
-      "integrity": "sha512-usbHZP9/oxNsUY65MQUsduGRqDHQOou1cagUSwjhoSYAmSahjQDAVsh9s+SlZkn8X8+O1FULRGwHu7AFP3kjzg==",
-      "dependencies": [
-        "node-addon-api",
-        "node-gyp-build"
-      ],
-      "scripts": true
-    },
     "tree-sitter@0.25.0": {
       "integrity": "sha512-PGZZzFW63eElZJDe/b/R/LbsjDDYJa5UEjLZJB59RQsMX+fo0j54fqBPn1MGKav/QNa0JR0zBiVaikYDWCj5KQ==",
       "dependencies": [
@@ -1323,6 +1225,16 @@
         "@vue/shared"
       ]
     },
+    "web-tree-sitter@0.25.4": {
+      "integrity": "sha512-BNbAL2tgeuqpufHOM4TapD8evwq+J+X514rTL7zMgDSc+RN9LlByE3zVtTheucwQFkQ+FPU0Pz8Wn4Emz9itRg=="
+    },
+    "which@4.0.0": {
+      "integrity": "sha512-GlaYyEb07DPxYCKhKzplCWBJtvxZcZMrL+4UkrTSJHHPyZU4mYYTv3qaOe77H7EODLSSopAUFAc6W8U4yqvscg==",
+      "dependencies": [
+        "isexe"
+      ],
+      "bin": true
+    },
     "zwitch@2.0.4": {
       "integrity": "sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A=="
     }
@@ -1348,14 +1260,7 @@
         "dependencies": [
           "jsr:@std/path@1",
           "jsr:@std/yaml@1",
-          "npm:@ast-grep/lang-bash@^0.0.7",
-          "npm:@ast-grep/lang-javascript@^0.0.6",
-          "npm:@ast-grep/lang-markdown@^0.0.5",
-          "npm:@ast-grep/lang-python@^0.0.5",
-          "npm:@ast-grep/lang-typescript@^0.0.6",
-          "npm:@ast-grep/napi@~0.40.5",
-          "npm:@tree-sitter-grammars/tree-sitter-markdown@~0.3.2",
-          "npm:tree-sitter@~0.22.4"
+          "npm:web-tree-sitter@0.25.4"
         ]
       },
       "packages/cli": {

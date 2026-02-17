@@ -1,4 +1,4 @@
-import { parse, registerDynamicLanguage } from "@ast-grep/napi";
+import { initializeTreeSitter, parse, registerDynamicLanguage } from "@ast-grep/wasm";
 import type {
     Finding,
     PermissionScope,
@@ -6,11 +6,10 @@ import type {
     ReferenceType,
     RuleRiskMapping,
 } from "skill-lab/shared";
-import {
-    type AstGrepGrammar,
-    buildBundledRegistrations,
-    buildDevRegistrations,
-} from "./registry.ts";
+import { ensureGrammar } from "../treesitter/registry.ts";
+import type { TreesitterGrammar } from "../treesitter/registry.ts";
+
+export type AstGrepGrammar = Exclude<TreesitterGrammar, "markdown" | "markdown-inline" | "tsx">;
 
 export type AstGrepRule = {
     id: string;
@@ -33,49 +32,50 @@ export type AstGrepMatch = {
     extracted: Record<string, unknown>;
 };
 
+type SgRoot = ReturnType<typeof parse>;
+type SgRootCache = Map<number, Map<number, SgRoot>>;
+
 export class AstGrepClient {
-    private isLanguageRegistryInitialized = false;
-    private PARSE_CACHE_BY_GRAMMAR: Partial<
-        Record<
-            AstGrepRule["grammar"] | "markdown",
-            Map<number, Map<number, ReturnType<typeof parse>>>
-        >
-    > = {};
+    private REGISTERED_GRAMMARS = new Set<AstGrepGrammar>();
+    private SG_ROOT_CACHE_BY_CONTENT: Partial<Record<AstGrepGrammar, SgRootCache>> = {};
+
+    /** Lazy runtime init promise — created on first use, shared across all calls. */
+    private parserInitialized: boolean = false;
 
     /** Parse content for direct AST traversal using kind/composite rules. */
-    public parse(
-        language: AstGrepRule["grammar"] | "markdown",
+    public async parse(
+        language: AstGrepGrammar,
         content: string,
-    ): ReturnType<typeof parse> {
-        this.ensureLanguageRegistry();
-        const rootByLen = this.getParseCache(language);
+    ): Promise<SgRoot> {
+        await this.ensureLanguageRegistered(language);
+        const sgRootByLen = this.getSgRootCache(language);
         const len = content.length;
-        const rootByHash = rootByLen.get(len);
+        const rootByHash = sgRootByLen.get(len);
         if (rootByHash) {
             const hash = this.hashContent(content);
             const cached = rootByHash.get(hash);
             if (cached) return cached;
         }
 
-        const ast = parse(language, content);
+        const sgRoot = parse(language, content);
         const hash = this.hashContent(content);
-        const bucket = rootByLen.get(len) ?? new Map<number, ReturnType<typeof parse>>();
-        bucket.set(hash, ast);
-        rootByLen.set(len, bucket);
+        const bucket = sgRootByLen.get(len) ?? new Map<number, SgRoot>();
+        bucket.set(hash, sgRoot);
+        sgRootByLen.set(len, bucket);
 
-        return ast;
+        return sgRoot;
     }
 
-    public scanWithRules(
+    public async scanWithRules(
         content: string,
-        language: AstGrepRule["grammar"],
+        language: AstGrepGrammar,
         rules: AstGrepRule[],
-    ): AstGrepMatch[] {
-        this.ensureLanguageRegistry();
+    ): Promise<AstGrepMatch[]> {
+        await this.ensureLanguageRegistered(language);
         const matches: AstGrepMatch[] = [];
 
         try {
-            const ast = this.parse(language, content);
+            const ast = await this.parse(language, content);
             const root = ast.root();
 
             for (const rule of rules) {
@@ -130,16 +130,21 @@ export class AstGrepClient {
         }));
     }
 
-    private ensureLanguageRegistry(): void {
-        if (this.isLanguageRegistryInitialized) return;
+    /** Initializes the ast-grep runtime once (without registering grammars yet). */
+    private async ensureRuntimeInit() {
+        if (this.parserInitialized) return;
 
-        const bundledResourceDir = Deno.env.get("SKILL_LAB_AST_GREP_RESOURCES_DIR");
-        const registrations = bundledResourceDir
-            ? buildBundledRegistrations(bundledResourceDir)
-            : buildDevRegistrations();
+        await initializeTreeSitter();
+    }
 
-        registerDynamicLanguage(registrations);
-        this.isLanguageRegistryInitialized = true;
+    /** Lazily register a single grammar the first time it is needed. */
+    private async ensureLanguageRegistered(language: AstGrepGrammar) {
+        if (this.REGISTERED_GRAMMARS.has(language)) return;
+
+        await this.ensureRuntimeInit();
+        const wasmPath = await ensureGrammar(language);
+        await registerDynamicLanguage({ [language]: { libraryPath: wasmPath } });
+        this.REGISTERED_GRAMMARS.add(language);
     }
 
     private stripQuotes(value: string): string {
@@ -150,16 +155,11 @@ export class AstGrepClient {
             .trim();
     }
 
-    private getParseCache(
-        language: AstGrepRule["grammar"] | "markdown",
-    ): Map<number, Map<number, ReturnType<typeof parse>>> {
-        if (!this.PARSE_CACHE_BY_GRAMMAR[language]) {
-            this.PARSE_CACHE_BY_GRAMMAR[language] = new Map<
-                number,
-                Map<number, ReturnType<typeof parse>>
-            >();
+    private getSgRootCache(language: AstGrepGrammar): SgRootCache {
+        if (!this.SG_ROOT_CACHE_BY_CONTENT[language]) {
+            this.SG_ROOT_CACHE_BY_CONTENT[language] = new Map<number, Map<number, SgRoot>>();
         }
-        return this.PARSE_CACHE_BY_GRAMMAR[language]!;
+        return this.SG_ROOT_CACHE_BY_CONTENT[language]!;
     }
 
     private hashContent(content: string): number {

@@ -11,7 +11,7 @@ import type {
     Risk,
 } from "skill-lab/shared";
 import { AstGrepClient } from "./astgrep/client.ts";
-import { TreesitterClient } from "./treesiter/client.ts";
+import { TreesitterClient } from "./treesitter/client.ts";
 
 export type AnalyzerConfig = {
     maxFileSize: number;

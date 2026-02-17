@@ -3,7 +3,7 @@ import { run001Discovery, run002Permissions, run003Risks } from "./steps/mod.ts"
 import type { AnalyzerConfig, AnalyzerResult, AnalyzerState } from "./types.ts";
 import type { SkillReaderFactoryOptions } from "../skillreader/factory.ts";
 import { SkillReaderFactory } from "../skillreader/factory.ts";
-import { TreesitterClient } from "./treesiter/client.ts";
+import { TreesitterClient } from "./treesitter/client.ts";
 import { AstGrepClient } from "./astgrep/mod.ts";
 
 export type { AnalyzerConfig, AnalyzerResult, AnalyzerState } from "./types.ts";

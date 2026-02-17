@@ -18,6 +18,7 @@ export default defineConfig({
                     items: [
                         { text: "Overview", link: "/cli/overview" },
                         { text: "Installation", link: "/cli/installation" },
+                        { text: "Configuration", link: "/cli/configuration" },
                         {
                             text: "Commands",
                             items: [
@@ -58,6 +59,7 @@ export default defineConfig({
                     collapsed: true,
                     items: [
                         { text: "@ast-grep/napi Runtime", link: "/development/astgrep.md" },
+                        { text: "wasm", link: "/development/wasm-build.md" },
                     ],
                 },
             ],

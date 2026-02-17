@@ -14,9 +14,35 @@ you agree to the Contributor License Agreement
 
 ## Local development
 
-Skill Lab uses Deno tasks for local development.
+### Prerequisites
 
-Run core checks:
+- [Deno](https://deno.land) v2.x
+- [Rust](https://rustup.rs) (stable toolchain)
+- [wasm-pack](https://rustwasm.github.io/wasm-pack/)
+
+Install wasm-pack:
+
+```bash
+curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+rustup target add wasm32-unknown-unknown
+```
+
+### Setup
+
+Before running checks, tests, or builds, run the setup step to build the vendored
+`@ast-grep/wasm` artifact:
+
+```bash
+deno task setup
+```
+
+This clones the ast-grep [wasm branch (PR #2484)](https://github.com/ast-grep/ast-grep/pull/2484)
+at a pinned commit, builds it with `wasm-pack`, and installs the output to `vendor/ast-grep-wasm/`.
+The `vendor/` directory is gitignored and must be regenerated in each fresh checkout.
+
+See `docs/development/wasm-build.md` for full details on the build process and version pinning.
+
+### Run core checks
 
 ```bash
 deno task check
@@ -24,47 +50,41 @@ deno task test
 deno task build
 ```
 
-Build and run the CLI locally:
+### Build and run the CLI locally
 
 ```bash
 deno task cli:build
 deno task cli:dev
 ```
 
-Build npm output locally:
+### Build npm output locally
 
 ```bash
 deno task npm:build
 ```
 
-## ast-grep runtime and parser bundling
+## WASM grammar registry
 
-The compiled CLI relies on ast-grep runtime registration data from
-`packages/analyzer/astgrep/registry.ts`.
+The compiled CLI downloads tree-sitter grammar `.wasm` files on first use and caches
+them in the XDG cache directory (see `docs/cli/configuration.md`).
 
-This registry is the single source of truth for:
+Grammar download URLs and filenames are defined in
+`packages/analyzer/treesitter/registry.ts`. This file is the single source of truth for:
 
-- development-time ast-grep language registration
-- bundled parser filenames used at runtime in compiled artifacts
-- parser tarball URLs used by release/nightly build packaging
+- grammar `.wasm` download URLs (exact version-pinned)
+- language-to-grammar mapping for both `AstGrepClient` and `TreesitterClient`
+- XDG cache directory resolution logic (`getCacheDir()`)
 
-When updating ast-grep language/parser versions:
+When updating grammar versions:
 
-1. Update entries in `packages/analyzer/astgrep/registry.ts`.
-2. Verify parser fetch script output:
-
-   ```bash
-   deno run -A scripts/fetch_astgrep_parsers.ts --parser-prebuild prebuild-macOS-ARM64 --out-dir /tmp/astgrep-parsers
-   ```
-
+1. Update the `GRAMMAR_SPECS` entries in `packages/analyzer/treesitter/registry.ts`.
+2. Verify `web-tree-sitter` ABI compatibility (see `docs/development/wasm-build.md`).
 3. Run analyzer checks/tests:
 
    ```bash
    deno task analyzer:check
    deno task analyzer:test
    ```
-
-Design notes and trade-offs are documented in `docs/guide/astgrep-runtime.md`.
 
 ## Docs development
 

@@ -85,7 +85,7 @@ export async function run002Permissions(
         }
 
         for (const scanTarget of scanTargets) {
-            next = scanFileForPermissions(context, {
+            next = await scanFileForPermissions(context, {
                 state: next,
                 fileRef,
                 scanPath: scanTarget.scanPath,
@@ -143,9 +143,12 @@ async function resolveScanTargets(
     if (referenceType === "inline") {
         const line = lines[decoded.startLine - 1] ?? "";
         const snippets = extractInlineSnippets(line);
-        const likelyCommands = snippets.filter((snippet) =>
-            isLikelyInlineBashCommand(context, { snippet, lineContext: line })
+        const likelyCommandFlags = await Promise.all(
+            snippets.map((snippet) =>
+                isLikelyInlineBashCommand(context, { snippet, lineContext: line })
+            ),
         );
+        const likelyCommands = snippets.filter((_, i) => likelyCommandFlags[i]);
 
         return likelyCommands.map((snippet) => ({
             scanPath: decoded.parentPath,

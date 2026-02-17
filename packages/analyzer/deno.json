@@ -5,16 +5,10 @@
     "imports": {
         "@FeiyouG/skill-lab": "../skillreader/mod.ts",
         "skill-lab/shared": "../shared/mod.ts",
-        "tree-sitter": "npm:tree-sitter@^0.22.4",
-        "@tree-sitter-grammars/tree-sitter-markdown": "npm:@tree-sitter-grammars/tree-sitter-markdown@^0.3.2",
         "@std/yaml": "jsr:@std/yaml@^1.0.0",
         "@std/path": "jsr:@std/path@^1.0.0",
-        "@ast-grep/napi": "npm:@ast-grep/napi@^0.40.5",
-        "@ast-grep/lang-bash": "npm:@ast-grep/lang-bash@^0.0.7",
-        "@ast-grep/lang-javascript": "npm:@ast-grep/lang-javascript@^0.0.6",
-        "@ast-grep/lang-markdown": "npm:@ast-grep/lang-markdown@^0.0.5",
-        "@ast-grep/lang-python": "npm:@ast-grep/lang-python@^0.0.5",
-        "@ast-grep/lang-typescript": "npm:@ast-grep/lang-typescript@^0.0.6"
+        "web-tree-sitter": "npm:web-tree-sitter@0.25.4",
+        "@ast-grep/wasm": "../../vendor/ast-grep-wasm/ast_grep_wasm.mjs"
     },
     "tasks": {
         "check": "deno fmt --check && deno lint && deno check **/*.ts",

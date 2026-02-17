@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import { discoverReferencedFiles } from "./discover-files.ts";
 import type { SkillFile } from "@FeiyouG/skill-lab";
 import { AstGrepClient } from "../../astgrep/client.ts";
-import { TreesitterClient } from "../../treesiter/client.ts";
+import { TreesitterClient } from "../../treesitter/client.ts";
 import type { AnalyzerContext } from "../../types.ts";
 
 // Minimal SkillFile for test use

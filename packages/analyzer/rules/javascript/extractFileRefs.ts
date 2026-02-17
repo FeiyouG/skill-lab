@@ -7,22 +7,21 @@
  * - URL string literals used in fetch/axios/XMLHttpRequest → via: "url"
  * - Host filesystem paths in fs.readFile / fs.writeFile / open calls → via: "bare-path"
  *
- * Uses ast-grep AST traversal; `context` is accepted for interface consistency
- * (AST client is synchronous for JS/TS and does not require async setup).
+ * Uses ast-grep AST traversal.
  */
 
 import { isHostFsPath, isUrl } from "../shared/file-refs.ts";
 import type { AnalyzerContext, FileRefDiscovery } from "../../types.ts";
 import { JS_NODE } from "./astTypes.ts";
 
-function extractJsLikeFileRefs(
+async function extractJsLikeFileRefs(
     lang: "javascript" | "typescript",
     context: AnalyzerContext,
     content: string,
-): FileRefDiscovery[] {
+): Promise<FileRefDiscovery[]> {
     const refs: FileRefDiscovery[] = [];
 
-    const ast = context.astgrepClient.parse(lang, content);
+    const ast = await context.astgrepClient.parse(lang, content);
     const root = ast.root();
 
     // ── import_statement ────────────────────────────────────────────────────
@@ -120,13 +119,13 @@ function extractJsLikeFileRefs(
 export function extractJsFileRefs(
     context: AnalyzerContext,
     content: string,
-): FileRefDiscovery[] {
+): Promise<FileRefDiscovery[]> {
     return extractJsLikeFileRefs("javascript", context, content);
 }
 
 export function extractTsFileRefs(
     context: AnalyzerContext,
     content: string,
-): FileRefDiscovery[] {
+): Promise<FileRefDiscovery[]> {
     return extractJsLikeFileRefs("typescript", context, content);
 }

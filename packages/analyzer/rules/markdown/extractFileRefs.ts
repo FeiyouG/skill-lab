@@ -10,16 +10,7 @@
 import { BARE_PATH_PATTERN, isUrl, looksLikePath } from "../shared/file-refs.ts";
 import type { AnalyzerContext, FileRefDiscovery } from "../../types.ts";
 import { MARKDOWN_INLINE_QUERY, MARKDOWN_QUERY } from "./astTypes.ts";
-
-type TsNode = {
-    type: string;
-    text: string;
-    startPosition: { row: number; column: number };
-    children: TsNode[];
-};
-
-type TsCapture = { name: string; node: unknown };
-type TsMatch = { captures: TsCapture[] };
+import type { Node as TsNode } from "web-tree-sitter";
 
 export async function extractMarkdownFileRefs(
     context: AnalyzerContext,
@@ -48,16 +39,17 @@ export async function extractMarkdownFileRefs(
             MARKDOWN_INLINE_QUERY.TEXT,
         );
 
-        for (const inlineMatch of inlineNodeQuery.matches(blockTree.rootNode) as TsMatch[]) {
+        for (const inlineMatch of inlineNodeQuery.matches(blockTree.rootNode)) {
             for (const inlineCapture of inlineMatch.captures) {
                 if (inlineCapture.name !== "inline") continue;
                 const inlineNode = inlineCapture.node as TsNode;
                 const blockLine = inlineNode.startPosition.row;
 
                 const inlineTree = inlineParser.parse(inlineNode.text);
+                if (!inlineTree) continue;
                 const inlineRoot = inlineTree.rootNode;
 
-                for (const match of linkDestQuery.matches(inlineRoot) as TsMatch[]) {
+                for (const match of linkDestQuery.matches(inlineRoot)) {
                     for (const capture of match.captures) {
                         if (capture.name !== "dest") continue;
                         const destNode = capture.node as TsNode;
@@ -67,7 +59,7 @@ export async function extractMarkdownFileRefs(
                     }
                 }
 
-                for (const match of codeSpanQuery.matches(inlineRoot) as TsMatch[]) {
+                for (const match of codeSpanQuery.matches(inlineRoot)) {
                     for (const capture of match.captures) {
                         if (capture.name !== "code") continue;
                         const codeNode = capture.node as TsNode;
@@ -84,7 +76,7 @@ export async function extractMarkdownFileRefs(
                     }
                 }
 
-                for (const match of textQuery.matches(inlineRoot) as TsMatch[]) {
+                for (const match of textQuery.matches(inlineRoot)) {
                     for (const capture of match.captures) {
                         if (capture.name !== "text") continue;
                         const textNode = capture.node as TsNode;

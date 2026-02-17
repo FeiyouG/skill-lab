@@ -40,7 +40,7 @@ const SHELL_RESERVED_WORDS = new Set([
 /**
  * Scans a text-like file and returns updated state with permissions and findings.
  */
-export function scanFileForPermissions(
+export async function scanFileForPermissions(
     context: AnalyzerContext,
     input: {
         state: AnalyzerState;
@@ -50,7 +50,7 @@ export function scanFileForPermissions(
         lineOffset?: number;
         referenceType?: "content" | "script" | "inline";
     },
-): AnalyzerState {
+): Promise<AnalyzerState> {
     const {
         state,
         fileRef,
@@ -75,7 +75,7 @@ export function scanFileForPermissions(
     }
 
     const scanLanguage = rules[0].grammar;
-    const matches = context.astgrepClient.scanWithRules(content, scanLanguage, rules);
+    const matches = await context.astgrepClient.scanWithRules(content, scanLanguage, rules);
     const lines = content.split("\n");
     const filteredMatches = matches.filter((match) =>
         shouldKeepMatchForBlock(match, lineOffset + 1, lines)
