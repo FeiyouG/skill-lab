@@ -19,6 +19,15 @@ export type AnalyzerConfig = {
     maxScanDepth: number;
 };
 
+export type AnalyzerLogLevel = "silence" | "warn" | "info" | "debug";
+
+export type AnalyzerLogger = {
+    debug: (template: string, props?: Record<string, unknown>) => void;
+    info: (template: string, props?: Record<string, unknown>) => void;
+    warn: (template: string, props?: Record<string, unknown>) => void;
+    error: (template: string, props?: Record<string, unknown>) => void;
+};
+
 export type AnalyzerState = {
     skillId: string;
     skillVersionId: string;
@@ -60,6 +69,8 @@ export type AnalyzerContext = {
     skillReader: SkillReader;
     treesitterClient: TreesitterClient;
     astgrepClient: AstGrepClient;
+    logger?: AnalyzerLogger;
+    logLevel?: AnalyzerLogLevel;
 };
 
 /** A file path or package reference discovered in source content. */

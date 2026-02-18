@@ -1,12 +1,48 @@
-import type { AnalyzerResult, AnalyzerState } from "../../types.ts";
+import ProgressBar from "@deno-library/progress";
+import { showProgress } from "../../logging.ts";
+import type {
+    AnalyzerLogger,
+    AnalyzerLogLevel,
+    AnalyzerResult,
+    AnalyzerState,
+} from "../../types.ts";
 import { toAnalyzerResult } from "./output.ts";
 import { analyzeRuleMappedRisks } from "./rule-mapped.ts";
 
 const REMOTE_SCRIPT_WARNING = "Remote script content analysis is NOT_IMPLEMENTED";
 
-export function run003Risks(state: AnalyzerState): AnalyzerResult {
+export function run003Risks(
+    state: AnalyzerState,
+    logCtx?: { logger: AnalyzerLogger; logLevel: AnalyzerLogLevel },
+): AnalyzerResult {
     let next = state;
-    next = analyzeRuleMappedRisks(next);
+
+    const shouldRenderProgress = !!logCtx && showProgress(logCtx) && Deno.stdout.isTerminal();
+    const riskBar = shouldRenderProgress
+        ? new ProgressBar({
+            total: Math.max(1, next.findings.length),
+            clear: true,
+            output: Deno.stderr,
+            display: "Finalizing [:bar] :completed/:total findings :percent",
+        })
+        : null;
+    let processed = 0;
+
+    if (riskBar) {
+        void riskBar.render(processed);
+    }
+
+    next = analyzeRuleMappedRisks(next, () => {
+        processed += 1;
+        if (riskBar) {
+            void riskBar.render(processed);
+        }
+    });
+
+    if (riskBar) {
+        void riskBar.end();
+    }
+
     next = addRemoteScriptWarningIfNeeded(next);
     return toAnalyzerResult(dedupeRisks(next));
 }

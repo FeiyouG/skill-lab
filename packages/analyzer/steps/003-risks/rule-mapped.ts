@@ -9,7 +9,10 @@ const NETWORK_CATEGORY = "NETWORK";
 const SECRETS_CATEGORY = "SECRETS";
 const DESTRUCTIVE_CATEGORIES = new Set(["DESTRUCTIVE", "PRIVILEGE", "PERSISTENCE"]);
 
-export function analyzeRuleMappedRisks(state: AnalyzerState): AnalyzerState {
+export function analyzeRuleMappedRisks(
+    state: AnalyzerState,
+    onFindingProcessed?: () => void,
+): AnalyzerState {
     let next = state;
 
     for (const finding of next.findings) {
@@ -32,6 +35,8 @@ export function analyzeRuleMappedRisks(state: AnalyzerState): AnalyzerState {
                 metadata: risk.metadata ?? finding.extracted,
             });
         }
+
+        onFindingProcessed?.();
     }
 
     return next;

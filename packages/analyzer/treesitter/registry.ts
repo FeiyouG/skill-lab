@@ -12,7 +12,10 @@
  *      %LOCALAPPDATA%\skill-lab\Cache  (Windows)
  */
 
+import ProgressBar from "@deno-library/progress";
 import { join } from "@std/path";
+import { showProgress } from "../logging.ts";
+import type { AnalyzerLogger, AnalyzerLogLevel } from "../types.ts";
 
 const TREESITTER_GRAMMER_SUBDIR = "treesitter/grammars";
 
@@ -21,6 +24,13 @@ export type GrammarSpec = {
     filename: string;
     /** Exact, version-pinned URL to download the grammar .wasm from. */
     url: string;
+};
+
+/** Progress event emitted per chunk while downloading a grammar WASM file. */
+export type DownloadProgressEvent = {
+    label: string;
+    received: number;
+    total: number;
 };
 
 /**
@@ -100,9 +110,19 @@ export function getCacheDir(): string {
  * in GRAMMAR_SPECS. Subsequent calls return immediately from cache.
  *
  * @param lang - Language key (e.g. "bash", "typescript", "markdown-inline")
+ * @param opts.logger - Optional logger for download events
+ * @param opts.logLevel - Controls whether a standalone progress bar is shown (fallback when no onDownloadProgress supplied)
+ * @param opts.onDownloadProgress - If provided, called per chunk instead of rendering a standalone progress bar
  * @returns Absolute path to the cached .wasm file
  */
-export async function ensureGrammar(lang: string): Promise<string> {
+export async function ensureGrammar(
+    lang: string,
+    opts?: {
+        logger?: AnalyzerLogger;
+        logLevel?: AnalyzerLogLevel;
+        onDownloadProgress?: (event: DownloadProgressEvent) => void;
+    },
+): Promise<string> {
     if (!(lang in GRAMMAR_SPECS)) {
         throw new Error(
             `No grammar spec for language: "${lang}". Available: ${
@@ -125,6 +145,7 @@ export async function ensureGrammar(lang: string): Promise<string> {
 
     // Download and write to cache
     await Deno.mkdir(cacheDir, { recursive: true });
+    opts?.logger?.info(`Grammar cache miss; downloading grammar for ${lang}`);
 
     const resp = await fetch(spec.url);
     if (!resp.ok) {
@@ -133,8 +154,74 @@ export async function ensureGrammar(lang: string): Promise<string> {
         );
     }
 
-    const bytes = new Uint8Array(await resp.arrayBuffer());
+    const contentLength = Number(resp.headers.get("content-length") ?? "0");
+    const label = `Downloading treesitter grammar for ${lang}`;
+
+    // If caller supplies an onDownloadProgress callback, delegate rendering to it
+    // (e.g. step 001 wires this into a MultiProgressBar row).
+    // Otherwise fall back to a standalone ProgressBar (e.g. step 002 cache miss).
+    const onDownloadProgress = opts?.onDownloadProgress;
+    const useStandaloneBar = !onDownloadProgress &&
+        showProgress({ logLevel: opts?.logLevel }) &&
+        Deno.stdout.isTerminal() &&
+        contentLength > 0;
+
+    const standaloneBar = useStandaloneBar
+        ? new ProgressBar({
+            title: label,
+            total: contentLength,
+            output: Deno.stderr,
+            clear: true,
+            display: ":title [:bar] :completed/:total bytes :percent",
+        })
+        : null;
+
+    if (standaloneBar) {
+        await standaloneBar.render(0);
+    }
+
+    let bytes: Uint8Array;
+    if (!resp.body) {
+        bytes = new Uint8Array(await resp.arrayBuffer());
+        const total = contentLength || bytes.byteLength;
+        onDownloadProgress?.({ label, received: total, total });
+        if (standaloneBar) {
+            await standaloneBar.render(total);
+            await standaloneBar.end();
+        }
+    } else {
+        const reader = resp.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let received = 0;
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (!value) continue;
+
+            chunks.push(value);
+            received += value.byteLength;
+
+            onDownloadProgress?.({ label, received, total: contentLength });
+            if (standaloneBar) {
+                await standaloneBar.render(Math.min(received, contentLength));
+            }
+        }
+
+        if (standaloneBar) {
+            await standaloneBar.end();
+        }
+
+        bytes = new Uint8Array(received);
+        let offset = 0;
+        for (const chunk of chunks) {
+            bytes.set(chunk, offset);
+            offset += chunk.byteLength;
+        }
+    }
+
     await Deno.writeFile(cachedPath, bytes);
+    opts?.logger?.info(`Grammar download complete: ${lang} (${bytes.byteLength} bytes)`);
 
     return cachedPath;
 }

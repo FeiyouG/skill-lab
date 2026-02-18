@@ -5,6 +5,8 @@
     "imports": {
         "@FeiyouG/skill-lab": "../skillreader/mod.ts",
         "skill-lab/shared": "../shared/mod.ts",
+        "@deno-library/progress": "jsr:@deno-library/progress@^1.5.1",
+        "@logtape/logtape": "jsr:@logtape/logtape@^2.0.0",
         "@std/yaml": "jsr:@std/yaml@^1.0.0",
         "@std/path": "jsr:@std/path@^1.0.0",
         "web-tree-sitter": "npm:web-tree-sitter@0.25.4",

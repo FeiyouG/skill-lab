@@ -7,12 +7,16 @@
     "jsr:@cliffy/table@1.0.0-rc.8": "1.0.0-rc.8",
     "jsr:@cliffy/table@^1.0.0-rc.7": "1.0.0-rc.8",
     "jsr:@david/code-block-writer@^13.0.3": "13.0.3",
+    "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/dnt@0.42": "0.42.3",
+    "jsr:@logtape/logtape@2": "2.0.2",
     "jsr:@std/assert@1": "1.0.18",
     "jsr:@std/fmt@1": "1.0.8",
+    "jsr:@std/fmt@1.0.3": "1.0.3",
     "jsr:@std/fmt@~1.0.2": "1.0.8",
     "jsr:@std/fs@1": "1.0.22",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@std/io@0.225.0": "0.225.0",
     "jsr:@std/path@1": "1.1.4",
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/text@~1.0.7": "1.0.17",
@@ -60,6 +64,13 @@
     "@david/code-block-writer@13.0.3": {
       "integrity": "f98c77d320f5957899a61bfb7a9bead7c6d83ad1515daee92dbacc861e13bb7f"
     },
+    "@deno-library/progress@1.5.1": {
+      "integrity": "966611826b8bb27baae73ab1c4fa4317cd4edd2abb99750cd6f8488d22d5b121",
+      "dependencies": [
+        "jsr:@std/fmt@1.0.3",
+        "jsr:@std/io"
+      ]
+    },
     "@deno/dnt@0.42.3": {
       "integrity": "62a917a0492f3c8af002dce90605bb0d41f7d29debc06aca40dba72ab65d8ae3",
       "dependencies": [
@@ -70,11 +81,17 @@
         "jsr:@ts-morph/bootstrap"
       ]
     },
+    "@logtape/logtape@2.0.2": {
+      "integrity": "546fcd514e66f2b841c6f261fa3a3d905b52d876dc1bba8ffe1a087d9275c4c9"
+    },
     "@std/assert@1.0.18": {
       "integrity": "270245e9c2c13b446286de475131dc688ca9abcd94fc5db41d43a219b34d1c78",
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/fmt@1.0.3": {
+      "integrity": "97765c16aa32245ff4e2204ecf7d8562496a3cb8592340a80e7e554e0bb9149f"
     },
     "@std/fmt@1.0.8": {
       "integrity": "71e1fc498787e4434d213647a6e43e794af4fd393ef8f52062246e06f7e372b7"
@@ -88,6 +105,9 @@
     },
     "@std/internal@1.0.12": {
       "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
+    "@std/io@0.225.0": {
+      "integrity": "c1db7c5e5a231629b32d64b9a53139445b2ca640d828c26bf23e1c55f8c079b3"
     },
     "@std/path@1.1.4": {
       "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
@@ -1258,6 +1278,8 @@
       },
       "packages/analyzer": {
         "dependencies": [
+          "jsr:@deno-library/progress@^1.5.1",
+          "jsr:@logtape/logtape@2",
           "jsr:@std/path@1",
           "jsr:@std/yaml@1",
           "npm:web-tree-sitter@0.25.4"
@@ -1267,6 +1289,8 @@
         "dependencies": [
           "jsr:@cliffy/command@^1.0.0-rc.7",
           "jsr:@cliffy/table@^1.0.0-rc.7",
+          "jsr:@deno-library/progress@^1.5.1",
+          "jsr:@logtape/logtape@2",
           "jsr:@std/fmt@1"
         ]
       },

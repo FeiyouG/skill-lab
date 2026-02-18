@@ -1,3 +1,5 @@
+import ProgressBar from "@deno-library/progress";
+import { showProgress } from "../../logging.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import type { Permission, Reference } from "skill-lab/shared";
 import { PROMPT_REGEX_RULES } from "../../rules/mod.ts";
@@ -19,91 +21,118 @@ export async function run002Permissions(
 
     next = seedPermissionsFromFrontmatter(next, skillMdPath);
 
+    const shouldRenderProgress = showProgress(context) && Deno.stdout.isTerminal();
+    const scanBar = shouldRenderProgress
+        ? new ProgressBar({
+            total: Math.max(1, next.scanQueue.length),
+            clear: true,
+            output: Deno.stderr,
+            display: ":completed/:total files [:bar] :percent ETA :eta",
+        })
+        : null;
+    let processed = 0;
+
+    if (scanBar) {
+        await scanBar.render(processed);
+    }
+
     for (const fileRef of next.scanQueue) {
-        if (fileRef.sourceType === "external") {
-            if (fileRef.role === "host-fs") {
-                next = addHostFsPermission(next, fileRef.path, fileRef.referencedBy);
-            } else if (fileRef.role === "library") {
+        try {
+            if (fileRef.sourceType === "external") {
+                if (fileRef.role === "host-fs") {
+                    next = addHostFsPermission(next, fileRef.path, fileRef.referencedBy);
+                } else if (fileRef.role === "library") {
+                    next = {
+                        ...next,
+                        warnings: [
+                            ...next.warnings,
+                            `External library/import not analyzed yet: ${fileRef.path}`,
+                        ],
+                        metadata: {
+                            ...next.metadata,
+                            skippedFiles: [...next.metadata.skippedFiles, {
+                                path: fileRef.path,
+                                reason: "external_library_dependency",
+                                referenceBy: fileRef.referencedBy,
+                            }],
+                        },
+                    };
+                } else if (
+                    fileRef.discoveryMethod === "markdown-link" ||
+                    fileRef.discoveryMethod === "url" ||
+                    fileRef.discoveryMethod === undefined
+                ) {
+                    next = {
+                        ...next,
+                        warnings: [
+                            ...next.warnings,
+                            `External reference not analyzed yet: ${fileRef.path}`,
+                        ],
+                        metadata: {
+                            ...next.metadata,
+                            skippedFiles: [...next.metadata.skippedFiles, {
+                                path: fileRef.path,
+                                reason: "external_reference",
+                                referenceBy: fileRef.referencedBy,
+                            }],
+                        },
+                    };
+                }
+                continue;
+            }
+
+            const scanTargets = await resolveScanTargets(fileRef, context);
+            if (scanTargets.length === 0) continue;
+
+            if (!RULES_BY_FILETYPE[fileRef.fileType]) {
                 next = {
                     ...next,
                     warnings: [
                         ...next.warnings,
-                        `External library/import not analyzed yet: ${fileRef.path}`,
+                        `File type '${fileRef.fileType}' is not supported yet for analysis: ${fileRef.path}`,
                     ],
                     metadata: {
                         ...next.metadata,
                         skippedFiles: [...next.metadata.skippedFiles, {
                             path: fileRef.path,
-                            reason: "external_library_dependency",
+                            reason: `unsupported_type_${fileRef.fileType}`,
                             referenceBy: fileRef.referencedBy,
                         }],
                     },
                 };
-            } else if (
-                fileRef.discoveryMethod === "markdown-link" || fileRef.discoveryMethod === "url" ||
-                fileRef.discoveryMethod === undefined
-            ) {
-                next = {
-                    ...next,
-                    warnings: [
-                        ...next.warnings,
-                        `External reference not analyzed yet: ${fileRef.path}`,
-                    ],
-                    metadata: {
-                        ...next.metadata,
-                        skippedFiles: [...next.metadata.skippedFiles, {
-                            path: fileRef.path,
-                            reason: "external_reference",
-                            referenceBy: fileRef.referencedBy,
-                        }],
-                    },
-                };
+                continue;
             }
-            continue;
-        }
 
-        const scanTargets = await resolveScanTargets(fileRef, context);
-        if (scanTargets.length === 0) continue;
+            for (const scanTarget of scanTargets) {
+                next = await scanFileForPermissions(context, {
+                    state: next,
+                    fileRef,
+                    scanPath: scanTarget.scanPath,
+                    content: scanTarget.content,
+                    lineOffset: scanTarget.lineOffset,
+                    referenceType: scanTarget.referenceType,
+                });
 
-        if (!RULES_BY_FILETYPE[fileRef.fileType]) {
-            next = {
-                ...next,
-                warnings: [
-                    ...next.warnings,
-                    `File type '${fileRef.fileType}' is not supported yet for analysis: ${fileRef.path}`,
-                ],
-                metadata: {
-                    ...next.metadata,
-                    skippedFiles: [...next.metadata.skippedFiles, {
-                        path: fileRef.path,
-                        reason: `unsupported_type_${fileRef.fileType}`,
-                        referenceBy: fileRef.referencedBy,
-                    }],
-                },
-            };
-            continue;
-        }
-
-        for (const scanTarget of scanTargets) {
-            next = await scanFileForPermissions(context, {
-                state: next,
-                fileRef,
-                scanPath: scanTarget.scanPath,
-                content: scanTarget.content,
-                lineOffset: scanTarget.lineOffset,
-                referenceType: scanTarget.referenceType,
-            });
-
-            if (scanTarget.referenceType === "content") {
-                next = applyPromptRegexFindings(
-                    next,
-                    scanTarget.scanPath,
-                    scanTarget.content,
-                    scanTarget.lineOffset,
-                    fileRef.referencedBy,
-                );
+                if (scanTarget.referenceType === "content") {
+                    next = applyPromptRegexFindings(
+                        next,
+                        scanTarget.scanPath,
+                        scanTarget.content,
+                        scanTarget.lineOffset,
+                        fileRef.referencedBy,
+                    );
+                }
+            }
+        } finally {
+            processed += 1;
+            if (scanBar) {
+                await scanBar.render(processed);
             }
         }
+    }
+
+    if (scanBar) {
+        await scanBar.end();
     }
 
     return synthesizePermissions(next);

@@ -7,7 +7,8 @@ import type {
     RuleRiskMapping,
 } from "skill-lab/shared";
 import { ensureGrammar } from "../treesitter/registry.ts";
-import type { TreesitterGrammar } from "../treesitter/registry.ts";
+import type { DownloadProgressEvent, TreesitterGrammar } from "../treesitter/registry.ts";
+import type { AnalyzerLogger, AnalyzerLogLevel } from "../types.ts";
 
 export type AstGrepGrammar = Exclude<TreesitterGrammar, "markdown" | "markdown-inline" | "tsx">;
 
@@ -35,12 +36,28 @@ export type AstGrepMatch = {
 type SgRoot = ReturnType<typeof parse>;
 type SgRootCache = Map<number, Map<number, SgRoot>>;
 
+type ClientLogContext = {
+    logger?: AnalyzerLogger;
+    logLevel?: AnalyzerLogLevel;
+};
+
 export class AstGrepClient {
     private REGISTERED_GRAMMARS = new Set<AstGrepGrammar>();
     private SG_ROOT_CACHE_BY_CONTENT: Partial<Record<AstGrepGrammar, SgRootCache>> = {};
 
     /** Lazy runtime init promise — created on first use, shared across all calls. */
     private parserInitialized: boolean = false;
+    private readonly logContext: ClientLogContext;
+    private onDownloadProgress?: (event: DownloadProgressEvent) => void;
+
+    constructor(logContext: ClientLogContext = {}) {
+        this.logContext = logContext;
+    }
+
+    /** Set/clear the download progress callback (wired by step 001 to MultiProgressBar). */
+    public setOnDownloadProgress(cb?: (event: DownloadProgressEvent) => void): void {
+        this.onDownloadProgress = cb;
+    }
 
     /** Parse content for direct AST traversal using kind/composite rules. */
     public async parse(
@@ -142,7 +159,10 @@ export class AstGrepClient {
         if (this.REGISTERED_GRAMMARS.has(language)) return;
 
         await this.ensureRuntimeInit();
-        const wasmPath = await ensureGrammar(language);
+        const wasmPath = await ensureGrammar(language, {
+            ...this.logContext,
+            onDownloadProgress: this.onDownloadProgress,
+        });
         await registerDynamicLanguage({ [language]: { libraryPath: wasmPath } });
         this.REGISTERED_GRAMMARS.add(language);
     }
