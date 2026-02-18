@@ -1,6 +1,7 @@
 import { Command } from "@cliffy/command";
 import { configure, getLogger, getStreamSink, getTextFormatter } from "@logtape/logtape";
 import type { AnalyzerLogger, AnalyzerLogLevel, AnalyzerResult } from "@FeiyouG/skill-lab-analyzer";
+import { formatAnalyzeResult } from "./analyze-format.ts";
 
 type AnalyzeOptions = {
     gitRef?: string;
@@ -93,18 +94,7 @@ export const analyzeCommand = new Command()
                 Deno.exit(EXIT_CODE[result.riskLevel]);
             }
 
-            console.log(`\n${"=".repeat(60)}`);
-            console.log("  Analysis Results (v2)");
-            console.log(`${"=".repeat(60)}\n`);
-            console.log(`  Permissions: ${result.permissions.length}`);
-            console.log(`  Risks: ${result.risks.length}`);
-            console.log(`  Score: ${result.score}`);
-            console.log(`  Risk Level: ${result.riskLevel}`);
-            console.log(`\n  Summary: ${result.summary}`);
-            if (result.warnings.length > 0) {
-                console.log(`\n  Warnings: ${result.warnings.length}`);
-            }
-            console.log("");
+            console.log(formatAnalyzeResult(result));
             Deno.exit(EXIT_CODE[result.riskLevel]);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);

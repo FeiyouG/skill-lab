@@ -1,6 +1,6 @@
 import { Language, Parser, Query, Tree } from "web-tree-sitter";
 import { ensureGrammar } from "../treesitter/registry.ts";
-import type { DownloadProgressEvent, TreesitterGrammar } from "../treesitter/registry.ts";
+import type { TreesitterGrammar } from "../treesitter/registry.ts";
 import type { AnalyzerLogger, AnalyzerLogLevel } from "../types.ts";
 
 type ClientLogContext = {
@@ -19,15 +19,9 @@ export class TreesitterClient {
     /** Parser.init() is idempotent but we avoid re-calling it. */
     private parserInitialized: boolean = false;
     private readonly logContext: ClientLogContext;
-    private onDownloadProgress?: (event: DownloadProgressEvent) => void;
 
     constructor(logContext: ClientLogContext = {}) {
         this.logContext = logContext;
-    }
-
-    /** Set/clear the download progress callback (wired by step 001 to MultiProgressBar). */
-    public setOnDownloadProgress(cb?: (event: DownloadProgressEvent) => void): void {
-        this.onDownloadProgress = cb;
     }
 
     private async ensureParserInit() {
@@ -48,7 +42,6 @@ export class TreesitterClient {
         if (!lang) {
             const wasmPath = await ensureGrammar(grammar, {
                 ...this.logContext,
-                onDownloadProgress: this.onDownloadProgress,
             });
             lang = await Language.load(wasmPath);
             this.LANG_BY_GRAMMAR[grammar] = lang;

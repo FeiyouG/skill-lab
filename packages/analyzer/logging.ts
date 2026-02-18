@@ -8,5 +8,5 @@ export const NO_OP_LOGGER: AnalyzerLogger = {
 };
 
 export function showProgress(input: { logLevel?: AnalyzerLogLevel }): boolean {
-    return input.logLevel === "info" || input.logLevel === "debug";
+    return input.logLevel != "silence"
 }

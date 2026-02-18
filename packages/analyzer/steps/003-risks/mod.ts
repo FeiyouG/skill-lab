@@ -10,11 +10,13 @@ import { toAnalyzerResult } from "./output.ts";
 import { analyzeRuleMappedRisks } from "./rule-mapped.ts";
 
 const REMOTE_SCRIPT_WARNING = "Remote script content analysis is NOT_IMPLEMENTED";
+const ANSI_SHOW_CURSOR = "\x1b[?25h";
+const ENCODER = new TextEncoder();
 
-export function run003Risks(
+export async function run003Risks(
     state: AnalyzerState,
     logCtx?: { logger: AnalyzerLogger; logLevel: AnalyzerLogLevel },
-): AnalyzerResult {
+): Promise<AnalyzerResult> {
     let next = state;
 
     const shouldRenderProgress = !!logCtx && showProgress(logCtx) && Deno.stdout.isTerminal();
@@ -28,19 +30,24 @@ export function run003Risks(
         : null;
     let processed = 0;
 
-    if (riskBar) {
-        void riskBar.render(processed);
-    }
-
-    next = analyzeRuleMappedRisks(next, () => {
-        processed += 1;
+    try {
         if (riskBar) {
-            void riskBar.render(processed);
+            await riskBar.render(processed);
         }
-    });
 
-    if (riskBar) {
-        void riskBar.end();
+        next = analyzeRuleMappedRisks(next, () => {
+            processed += 1;
+            if (riskBar) {
+                void riskBar.render(processed);
+            }
+        });
+    } finally {
+        if (riskBar) {
+            await riskBar.end();
+        }
+        if (shouldRenderProgress && Deno.stderr.isTerminal()) {
+            Deno.stderr.writeSync(ENCODER.encode(ANSI_SHOW_CURSOR));
+        }
     }
 
     next = addRemoteScriptWarningIfNeeded(next);

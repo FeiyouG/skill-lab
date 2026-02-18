@@ -26,11 +26,13 @@ export async function discoverReferencedFiles(
         allFiles: SkillFile[];
         readTextFile: (path: string) => Promise<string | null>;
         maxScanDepth: number;
-        onDiscover?: (count: number) => void;
+        onDiscover?: (progress: { scannedCount: number; discoveredCount: number }) => void;
     },
 ): Promise<FileReference[]> {
     const discovered = new Map<string, FileReference>();
     const queue: StartQueueItem[] = [...input.startQueue];
+    let scannedCount = 0;
+    let discoveredCount = 0;
 
     // A set of file paths which have been processed
     const processed = new Set<string>();
@@ -42,6 +44,7 @@ export async function discoverReferencedFiles(
 
         if (processed.has(current.path) || current.depth > input.maxScanDepth) continue;
         processed.add(current.path);
+        input.onDiscover?.({ scannedCount: scannedCount++, discoveredCount });
 
         const content = await input.readTextFile(current.path);
         if (!content) continue;
@@ -105,7 +108,6 @@ export async function discoverReferencedFiles(
                             referencedBy: referenceFromCurrent,
                         };
                         discovered.set(file.path, localEntry);
-                        input.onDiscover?.(discovered.size);
 
                         // Keep scaning for files that are referenced within the skill repo
                         queue.push({
@@ -113,6 +115,7 @@ export async function discoverReferencedFiles(
                             depth: current.depth + 1,
                             referencedBy: localEntry.referencedBy,
                         });
+                        input.onDiscover?.({ scannedCount, discoveredCount: discoveredCount++ });
                     }
                     continue;
                 }
@@ -127,7 +130,6 @@ export async function discoverReferencedFiles(
                         discoveryMethod: absoluteRef.via,
                         referencedBy: referenceFromCurrent,
                     });
-                    input.onDiscover?.(discovered.size);
                     continue;
                 }
 
@@ -141,7 +143,6 @@ export async function discoverReferencedFiles(
                         discoveryMethod: absoluteRef.via,
                         referencedBy: referenceFromCurrent,
                     });
-                    input.onDiscover?.(discovered.size);
                     continue;
                 }
 
@@ -155,7 +156,6 @@ export async function discoverReferencedFiles(
                         discoveryMethod: absoluteRef.via,
                         referencedBy: referenceFromCurrent,
                     });
-                    input.onDiscover?.(discovered.size);
                     continue;
                 }
             }
@@ -184,7 +184,6 @@ export async function discoverReferencedFiles(
                         referencedBy: current.referencedBy,
                     },
                 });
-                input.onDiscover?.(discovered.size);
             }
         }
     }

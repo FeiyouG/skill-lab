@@ -22,7 +22,7 @@ function createState(): AnalyzerState {
     };
 }
 
-Deno.test("run003Risks adds remote script warning for RCE risk", () => {
+Deno.test("run003Risks adds remote script warning for RCE risk", async () => {
     const state = createState();
     state.permissions = [{
         id: "sys-shell",
@@ -40,7 +40,7 @@ Deno.test("run003Risks adds remote script warning for RCE risk", () => {
         extracted: { command: "https://x.sh" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     assertEquals(
         result.warnings.includes("Remote script content analysis is NOT_IMPLEMENTED"),
         true,

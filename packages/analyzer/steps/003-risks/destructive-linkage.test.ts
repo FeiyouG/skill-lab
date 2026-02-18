@@ -26,7 +26,7 @@ function createInitialState(): AnalyzerState {
     };
 }
 
-Deno.test("run003Risks links destructive risk to matching permission reference only", () => {
+Deno.test("run003Risks links destructive risk to matching permission reference only", async () => {
     const state = createInitialState();
     state.permissions = [
         {
@@ -56,7 +56,7 @@ Deno.test("run003Risks links destructive risk to matching permission reference o
         extracted: { path: "/tmp/old-data" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
 
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "DESTRUCTIVE:destructive_behavior");

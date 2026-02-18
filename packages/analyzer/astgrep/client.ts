@@ -7,7 +7,7 @@ import type {
     RuleRiskMapping,
 } from "skill-lab/shared";
 import { ensureGrammar } from "../treesitter/registry.ts";
-import type { DownloadProgressEvent, TreesitterGrammar } from "../treesitter/registry.ts";
+import type { TreesitterGrammar } from "../treesitter/registry.ts";
 import type { AnalyzerLogger, AnalyzerLogLevel } from "../types.ts";
 
 export type AstGrepGrammar = Exclude<TreesitterGrammar, "markdown" | "markdown-inline" | "tsx">;
@@ -48,15 +48,9 @@ export class AstGrepClient {
     /** Lazy runtime init promise — created on first use, shared across all calls. */
     private parserInitialized: boolean = false;
     private readonly logContext: ClientLogContext;
-    private onDownloadProgress?: (event: DownloadProgressEvent) => void;
 
     constructor(logContext: ClientLogContext = {}) {
         this.logContext = logContext;
-    }
-
-    /** Set/clear the download progress callback (wired by step 001 to MultiProgressBar). */
-    public setOnDownloadProgress(cb?: (event: DownloadProgressEvent) => void): void {
-        this.onDownloadProgress = cb;
     }
 
     /** Parse content for direct AST traversal using kind/composite rules. */
@@ -161,7 +155,6 @@ export class AstGrepClient {
         await this.ensureRuntimeInit();
         const wasmPath = await ensureGrammar(language, {
             ...this.logContext,
-            onDownloadProgress: this.onDownloadProgress,
         });
         await registerDynamicLanguage({ [language]: { libraryPath: wasmPath } });
         this.REGISTERED_GRAMMARS.add(language);

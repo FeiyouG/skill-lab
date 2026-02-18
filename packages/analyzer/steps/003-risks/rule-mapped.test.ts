@@ -26,7 +26,7 @@ function createInitialState(): AnalyzerState {
     };
 }
 
-Deno.test("run003Risks resolves injection risk from rule-local mappedRisks", () => {
+Deno.test("run003Risks resolves injection risk from rule-local mappedRisks", async () => {
     const state = createInitialState();
     state.permissions = [{
         id: "sys-shell",
@@ -44,13 +44,13 @@ Deno.test("run003Risks resolves injection risk from rule-local mappedRisks", () 
         extracted: { code: "payload" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "INJECTION:command_injection");
     assertEquals(result.risks[0].permissions, ["sys-shell"]);
 });
 
-Deno.test("run003Risks resolves prompt risk from prompt rule mappedRisks", () => {
+Deno.test("run003Risks resolves prompt risk from prompt rule mappedRisks", async () => {
     const state = createInitialState();
     state.permissions = [{
         id: "fs-read",
@@ -68,13 +68,13 @@ Deno.test("run003Risks resolves prompt risk from prompt rule mappedRisks", () =>
         extracted: {},
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "PROMPT:prompt_override");
     assertEquals(result.risks[0].permissions, ["fs-read"]);
 });
 
-Deno.test("run003Risks resolves network exfiltration from network evaluator constant", () => {
+Deno.test("run003Risks resolves network exfiltration from network evaluator constant", async () => {
     const state = createInitialState();
     state.permissions = [{
         id: "net-curl",
@@ -93,7 +93,7 @@ Deno.test("run003Risks resolves network exfiltration from network evaluator cons
         extracted: { url: "https://api.example.com/upload", method: "POST" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "NETWORK:data_exfiltration");
     assertEquals(result.risks[0].permissions, ["net-curl"]);
@@ -101,7 +101,7 @@ Deno.test("run003Risks resolves network exfiltration from network evaluator cons
     assertEquals(result.risks[0].metadata?.method, "POST");
 });
 
-Deno.test("run003Risks resolves network credential leak from network evaluator constant", () => {
+Deno.test("run003Risks resolves network credential leak from network evaluator constant", async () => {
     const state = createInitialState();
     state.permissions = [{
         id: "net-curl-token",
@@ -120,12 +120,12 @@ Deno.test("run003Risks resolves network credential leak from network evaluator c
         extracted: { url: "https://api.example.com/data?token=abc" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     const types = result.risks.map((risk) => risk.type).sort();
     assertEquals(types, ["NETWORK:credential_leak", "NETWORK:external_network_access"]);
 });
 
-Deno.test("run003Risks resolves remote code execution and warning from mapped rule", () => {
+Deno.test("run003Risks resolves remote code execution and warning from mapped rule", async () => {
     const state = createInitialState();
     state.permissions = [{
         id: "sys-shell-curl-pipe",
@@ -144,7 +144,7 @@ Deno.test("run003Risks resolves remote code execution and warning from mapped ru
         extracted: { command: "https://example.com/install.sh" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "NETWORK:remote_code_execution");
     assertEquals(
@@ -153,7 +153,7 @@ Deno.test("run003Risks resolves remote code execution and warning from mapped ru
     );
 });
 
-Deno.test("run003Risks resolves secrets risk from shared secret evaluator constant", () => {
+Deno.test("run003Risks resolves secrets risk from shared secret evaluator constant", async () => {
     const state = createInitialState();
     state.permissions = [{
         id: "env-read",
@@ -171,13 +171,13 @@ Deno.test("run003Risks resolves secrets risk from shared secret evaluator consta
         extracted: { key: "API_TOKEN" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "SECRETS:secret_access");
     assertEquals(result.risks[0].permissions, ["env-read"]);
 });
 
-Deno.test("run003Risks skips secrets risk for non-secret env key", () => {
+Deno.test("run003Risks skips secrets risk for non-secret env key", async () => {
     const state = createInitialState();
     state.permissions = [{
         id: "env-read-path",
@@ -195,6 +195,6 @@ Deno.test("run003Risks skips secrets risk for non-secret env key", () => {
         extracted: { key: "PATH" },
     }];
 
-    const result = run003Risks(state);
+    const result = await run003Risks(state);
     assertEquals(result.risks.length, 0);
 });

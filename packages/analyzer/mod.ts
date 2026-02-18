@@ -83,7 +83,7 @@ export async function runAnalysis(input: {
 
     state = await run001Discovery(state, context);
     state = await run002Permissions(state, context);
-    return run003Risks(state, { logger, logLevel });
+    return await run003Risks(state, { logger, logLevel });
 }
 
 export function createInitialState(input?: {
