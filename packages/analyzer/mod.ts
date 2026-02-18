@@ -1,26 +1,16 @@
 import { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
 import { NO_OP_LOGGER } from "./logging.ts";
+import { SkillAnalyzerResult } from "./result.ts";
 import { run001Discovery, run002Permissions, run003Risks } from "./steps/mod.ts";
-import type {
-    AnalyzerConfig,
-    AnalyzerLogger,
-    AnalyzerLogLevel,
-    AnalyzerResult,
-    AnalyzerState,
-} from "./types.ts";
+import type { AnalyzerConfig, AnalyzerLogger, AnalyzerState } from "./types.ts";
 import type { SkillReaderFactoryOptions } from "../skillreader/factory.ts";
 import { SkillReaderFactory } from "../skillreader/factory.ts";
 import { TreesitterClient } from "./treesitter/client.ts";
 import { AstGrepClient } from "./astgrep/mod.ts";
 
-export type {
-    AnalyzerConfig,
-    AnalyzerLogger,
-    AnalyzerLogLevel,
-    AnalyzerResult,
-    AnalyzerState,
-} from "./types.ts";
+export type { AnalyzerConfig, AnalyzerLogger, AnalyzerState } from "./types.ts";
 
+export { SkillAnalyzerResult } from "./result.ts";
 export { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
 
 export type AnalyzerAnalyzeInput = SkillReaderFactoryOptions & {
@@ -28,11 +18,11 @@ export type AnalyzerAnalyzeInput = SkillReaderFactoryOptions & {
     skillVersionId?: string;
     config?: Partial<AnalyzerConfig>;
     logger?: AnalyzerLogger;
-    logLevel?: AnalyzerLogLevel;
+    showProgressBar?: boolean;
 };
 
 export class Analyzer {
-    analyze(input: AnalyzerAnalyzeInput): Promise<AnalyzerResult> {
+    analyze(input: AnalyzerAnalyzeInput): Promise<SkillAnalyzerResult> {
         return runAnalysis({
             options: {
                 source: input.source,
@@ -44,7 +34,7 @@ export class Analyzer {
             skillVersionId: input.skillVersionId,
             config: input.config,
             logger: input.logger,
-            logLevel: input.logLevel,
+            showProgressBar: input.showProgressBar,
         });
     }
 }
@@ -55,8 +45,8 @@ export async function runAnalysis(input: {
     skillVersionId?: string;
     config?: Partial<AnalyzerConfig>;
     logger?: AnalyzerLogger;
-    logLevel?: AnalyzerLogLevel;
-}): Promise<AnalyzerResult> {
+    showProgressBar?: boolean;
+}): Promise<SkillAnalyzerResult> {
     let state = createInitialState({
         skillId: input.skillId,
         skillVersionId: input.skillVersionId,
@@ -71,19 +61,19 @@ export async function runAnalysis(input: {
     }
 
     const logger = input.logger ?? NO_OP_LOGGER;
-    const logLevel = input.logLevel ?? "info";
+    const showProgressBar = input.showProgressBar ?? false;
 
     const context = {
         skillReader,
-        treesitterClient: new TreesitterClient({ logger, logLevel }),
-        astgrepClient: new AstGrepClient({ logger, logLevel }),
+        treesitterClient: new TreesitterClient(logger, showProgressBar),
+        astgrepClient: new AstGrepClient(logger, showProgressBar),
         logger,
-        logLevel,
+        showProgressBar,
     };
 
     state = await run001Discovery(state, context);
     state = await run002Permissions(state, context);
-    return await run003Risks(state, { logger, logLevel });
+    return await run003Risks(state, context);
 }
 
 export function createInitialState(input?: {

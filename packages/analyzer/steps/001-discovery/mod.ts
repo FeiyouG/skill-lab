@@ -1,6 +1,5 @@
 import ProgressBar from "@deno-library/progress";
 import { DEFAULT_SKILL_VERSION, FRONTMATTER_SUPPORTED_FIELDS } from "../../config.ts";
-import { showProgress } from "../../logging.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { discoverReferencedFiles } from "./discover-files.ts";
 import { filterScanQueue } from "./filter-files.ts";
@@ -38,14 +37,14 @@ export async function run001Discovery(
         }
     }
 
-    const shouldLogProgress = showProgress(context);
+    const shouldLogProgress = (context.showProgressBar ?? false) && Deno.stderr.isTerminal();
     const discoveryBar = shouldLogProgress
         ? new ProgressBar({
             total: files.length,
             clear: true,
             output: Deno.stderr,
-            complete: '=',
-            incomplete: '-',
+            complete: "=",
+            incomplete: "-",
             display: "Readings skills [:bar] :percent ETA :eta",
         })
         : null;
@@ -59,12 +58,12 @@ export async function run001Discovery(
             maxScanDepth: state.metadata.config.maxScanDepth,
             onDiscover: (progress) => {
                 discoveryBar?.render(progress.scannedCount, {
-                    total: progress.discoveredCount + 1
-                })
+                    total: progress.discoveredCount + 1,
+                });
             },
         });
     } finally {
-        discoveryBar?.end()
+        discoveryBar?.end();
     }
 
     discovered.push({

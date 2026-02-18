@@ -19,7 +19,37 @@ The target is required. The CLI infers source type from the value.
 - `--gitRef <sha|branch|tag>`: Git reference for GitHub or local git repositories. If omitted for GitHub, the default branch is used.
 - `--subDir <path>`: optional path from repository root to the skill directory that contains `SKILL.md`
 - `--githubToken <token>`: GitHub token for GitHub sources. Overrides `GITHUB_TOKEN`; if neither is set, requests are unauthenticated.
-- `--json`: print full analyzer output as JSON
+- `--json`: print full analyzer output as JSON (also implies `silence` flag)
+- `--sarif`: print results as SARIF 2.1.0 (also implies `silence` flag)
+
+### Logging
+
+- `--verbose`: enable debug logging
+- `--warn`: only warnings and errors
+- `--silence`: disable all logs
+
+If multiple logging flags are set, precedence is `--silence` > `--warn` > `--verbose`.
+
+## SARIF output
+
+[SARIF](https://sarifweb.azurewebsites.net/) (Static Analysis Results Interchange Format) is a standard JSON schema for static analysis tools. GitHub Code Scanning accepts SARIF files to surface findings directly in pull requests and the Security tab — making `--sarif` the right choice for CI workflows.
+
+Pipe the output to a file:
+
+```bash
+slab analyze ./path/to/skill --sarif > results.sarif
+```
+
+To upload to GitHub Code Scanning via the GitHub CLI:
+
+```bash
+slab analyze ./path/to/skill --sarif > results.sarif
+gh api repos/<owner>/<repo>/code-scanning/sarifs \
+  --method POST \
+  -f commit_sha=$(git rev-parse HEAD) \
+  -f ref=$(git symbolic-ref HEAD) \
+  -f sarif=$(gzip -c results.sarif | base64)
+```
 
 ## Examples
 
@@ -29,6 +59,10 @@ slab analyze https://github.com/org/repo
 slab analyze https://github.com/org/repo --subDir skills/my-skill
 slab analyze /path/to/repo --gitRef main --subDir skills/my-skill
 slab analyze ./path/to/skill --json
+slab analyze ./path/to/skill --verbose
+slab analyze ./path/to/skill --warn
+slab analyze ./path/to/skill --silence --json
+slab analyze ./path/to/skill --sarif > results.sarif
 ```
 
 ## Notes

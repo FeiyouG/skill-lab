@@ -13,6 +13,7 @@
     "jsr:@std/assert@1": "1.0.18",
     "jsr:@std/fmt@1": "1.0.8",
     "jsr:@std/fmt@1.0.3": "1.0.3",
+    "jsr:@std/fmt@^1.0.9": "1.0.9",
     "jsr:@std/fmt@~1.0.2": "1.0.8",
     "jsr:@std/fs@1": "1.0.22",
     "jsr:@std/internal@^1.0.12": "1.0.12",
@@ -95,6 +96,9 @@
     },
     "@std/fmt@1.0.8": {
       "integrity": "71e1fc498787e4434d213647a6e43e794af4fd393ef8f52062246e06f7e372b7"
+    },
+    "@std/fmt@1.0.9": {
+      "integrity": "2487343e8899fb2be5d0e3d35013e54477ada198854e52dd05ed0422eddcabe0"
     },
     "@std/fs@1.0.22": {
       "integrity": "de0f277a58a867147a8a01bc1b181d0dfa80bfddba8c9cf2bacd6747bcec9308",
@@ -1280,6 +1284,7 @@
         "dependencies": [
           "jsr:@deno-library/progress@^1.5.1",
           "jsr:@logtape/logtape@2",
+          "jsr:@std/fmt@^1.0.9",
           "jsr:@std/path@1",
           "jsr:@std/yaml@1",
           "npm:web-tree-sitter@0.25.4"

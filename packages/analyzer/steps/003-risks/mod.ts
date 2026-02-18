@@ -1,12 +1,6 @@
 import ProgressBar from "@deno-library/progress";
-import { showProgress } from "../../logging.ts";
-import type {
-    AnalyzerLogger,
-    AnalyzerLogLevel,
-    AnalyzerResult,
-    AnalyzerState,
-} from "../../types.ts";
-import { toAnalyzerResult } from "./output.ts";
+import { SkillAnalyzerResult } from "../../result.ts";
+import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { analyzeRuleMappedRisks } from "./rule-mapped.ts";
 
 const REMOTE_SCRIPT_WARNING = "Remote script content analysis is NOT_IMPLEMENTED";
@@ -15,11 +9,11 @@ const ENCODER = new TextEncoder();
 
 export async function run003Risks(
     state: AnalyzerState,
-    logCtx?: { logger: AnalyzerLogger; logLevel: AnalyzerLogLevel },
-): Promise<AnalyzerResult> {
+    context?: Pick<AnalyzerContext, "showProgressBar">,
+): Promise<SkillAnalyzerResult> {
     let next = state;
 
-    const shouldRenderProgress = !!logCtx && showProgress(logCtx) && Deno.stdout.isTerminal();
+    const shouldRenderProgress = (context?.showProgressBar ?? false) && Deno.stderr.isTerminal();
     const riskBar = shouldRenderProgress
         ? new ProgressBar({
             total: Math.max(1, next.findings.length),
@@ -51,7 +45,7 @@ export async function run003Risks(
     }
 
     next = addRemoteScriptWarningIfNeeded(next);
-    return toAnalyzerResult(dedupeRisks(next));
+    return new SkillAnalyzerResult(dedupeRisks(next));
 }
 
 function addRemoteScriptWarningIfNeeded(state: AnalyzerState): AnalyzerState {

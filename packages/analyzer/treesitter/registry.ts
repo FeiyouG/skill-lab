@@ -13,8 +13,7 @@
  */
 
 import { join } from "@std/path";
-import type { AnalyzerLogger, AnalyzerLogLevel } from "../types.ts";
-import { showProgress } from "../logging.ts";
+import type { AnalyzerLogger } from "../types.ts";
 import ProgressBar from "@deno-library/progress";
 
 const TREESITTER_GRAMMER_SUBDIR = "treesitter/grammars";
@@ -112,7 +111,7 @@ export async function ensureGrammar(
     lang: string,
     opts?: {
         logger?: AnalyzerLogger;
-        logLevel?: AnalyzerLogLevel;
+        showProgressBar?: boolean;
     },
 ): Promise<string> {
     if (!(lang in GRAMMAR_SPECS)) {
@@ -141,7 +140,6 @@ export async function ensureGrammar(
         Deno.stderr.writeSync(ENCODER.encode(ANSI_CLEAR_LINE));
     }
 
-
     const resp = await fetch(spec.url);
     if (!resp.ok) {
         throw new Error(
@@ -149,16 +147,16 @@ export async function ensureGrammar(
         );
     }
 
-    const shouldRenderProgress = showProgress(opts ?? {}) && Deno.stdout.isTerminal();
-    const contentLenHeader = resp.headers.get("content-length")!
-    const contentLen = parseInt(contentLenHeader)
+    const shouldRenderProgress = (opts?.showProgressBar ?? false) && Deno.stdout.isTerminal();
+    const contentLenHeader = resp.headers.get("content-length")!;
+    const contentLen = parseInt(contentLenHeader);
     const scanBar = shouldRenderProgress
         ? new ProgressBar({
             total: contentLen,
             clear: true,
             output: Deno.stderr,
-            complete: '=',
-            incomplete: '-',
+            complete: "=",
+            incomplete: "-",
             display: `Installing ${lang} grammar [:bar] :percent ETA :eta`,
         })
         : null;

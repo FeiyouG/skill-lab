@@ -8,7 +8,8 @@ import type {
 } from "skill-lab/shared";
 import { ensureGrammar } from "../treesitter/registry.ts";
 import type { TreesitterGrammar } from "../treesitter/registry.ts";
-import type { AnalyzerLogger, AnalyzerLogLevel } from "../types.ts";
+import type { AnalyzerLogger } from "../types.ts";
+import { NO_OP_LOGGER } from "../logging.ts";
 
 export type AstGrepGrammar = Exclude<TreesitterGrammar, "markdown" | "markdown-inline" | "tsx">;
 
@@ -36,22 +37,17 @@ export type AstGrepMatch = {
 type SgRoot = ReturnType<typeof parse>;
 type SgRootCache = Map<number, Map<number, SgRoot>>;
 
-type ClientLogContext = {
-    logger?: AnalyzerLogger;
-    logLevel?: AnalyzerLogLevel;
-};
-
 export class AstGrepClient {
     private REGISTERED_GRAMMARS = new Set<AstGrepGrammar>();
     private SG_ROOT_CACHE_BY_CONTENT: Partial<Record<AstGrepGrammar, SgRootCache>> = {};
 
     /** Lazy runtime init promise — created on first use, shared across all calls. */
     private parserInitialized: boolean = false;
-    private readonly logContext: ClientLogContext;
 
-    constructor(logContext: ClientLogContext = {}) {
-        this.logContext = logContext;
-    }
+    constructor(
+        private readonly logger: AnalyzerLogger = NO_OP_LOGGER,
+        private readonly showProgressBar: boolean = false,
+    ) {}
 
     /** Parse content for direct AST traversal using kind/composite rules. */
     public async parse(
@@ -154,7 +150,8 @@ export class AstGrepClient {
 
         await this.ensureRuntimeInit();
         const wasmPath = await ensureGrammar(language, {
-            ...this.logContext,
+            logger: this.logger,
+            showProgressBar: this.showProgressBar,
         });
         await registerDynamicLanguage({ [language]: { libraryPath: wasmPath } });
         this.REGISTERED_GRAMMARS.add(language);

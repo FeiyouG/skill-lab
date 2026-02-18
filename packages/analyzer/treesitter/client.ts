@@ -1,12 +1,8 @@
 import { Language, Parser, Query, Tree } from "web-tree-sitter";
 import { ensureGrammar } from "../treesitter/registry.ts";
 import type { TreesitterGrammar } from "../treesitter/registry.ts";
-import type { AnalyzerLogger, AnalyzerLogLevel } from "../types.ts";
-
-type ClientLogContext = {
-    logger?: AnalyzerLogger;
-    logLevel?: AnalyzerLogLevel;
-};
+import type { AnalyzerLogger } from "../types.ts";
+import { NO_OP_LOGGER } from "../logging.ts";
 
 export class TreesitterClient {
     private PARSER_BY_GRAMMAR: Partial<Record<TreesitterGrammar, Parser>> = {};
@@ -18,11 +14,11 @@ export class TreesitterClient {
     > = {};
     /** Parser.init() is idempotent but we avoid re-calling it. */
     private parserInitialized: boolean = false;
-    private readonly logContext: ClientLogContext;
 
-    constructor(logContext: ClientLogContext = {}) {
-        this.logContext = logContext;
-    }
+    constructor(
+        private readonly logger: AnalyzerLogger = NO_OP_LOGGER,
+        private readonly showProgressBar: boolean = false,
+    ) {}
 
     private async ensureParserInit() {
         if (this.parserInitialized) return;
@@ -41,7 +37,8 @@ export class TreesitterClient {
         let lang = this.LANG_BY_GRAMMAR[grammar];
         if (!lang) {
             const wasmPath = await ensureGrammar(grammar, {
-                ...this.logContext,
+                logger: this.logger,
+                showProgressBar: this.showProgressBar,
             });
             lang = await Language.load(wasmPath);
             this.LANG_BY_GRAMMAR[grammar] = lang;

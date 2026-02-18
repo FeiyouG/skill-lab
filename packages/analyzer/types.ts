@@ -19,8 +19,6 @@ export type AnalyzerConfig = {
     maxScanDepth: number;
 };
 
-export type AnalyzerLogLevel = "silence" | "warn" | "info" | "debug";
-
 export type AnalyzerLogger = {
     debug: (template: string, props?: Record<string, unknown>) => void;
     info: (template: string, props?: Record<string, unknown>) => void;
@@ -46,31 +44,12 @@ export type AnalyzerState = {
     };
 };
 
-export type AnalyzerResult = {
-    analyzedAt: string;
-    skillId: string;
-    skillVersionId: string;
-    permissions: Permission[];
-    risks: Risk[];
-    score: number;
-    riskLevel: "safe" | "caution" | "attention" | "risky" | "avoid";
-    summary: string;
-    warnings: string[];
-    metadata: {
-        scannedFiles: string[];
-        skippedFiles: Array<{ path: string; reason: string }>;
-        rulesUsed: string[];
-        frontmatterRangeEnd?: number;
-        config: AnalyzerConfig;
-    };
-};
-
 export type AnalyzerContext = {
     skillReader: SkillReader;
     treesitterClient: TreesitterClient;
     astgrepClient: AstGrepClient;
     logger?: AnalyzerLogger;
-    logLevel?: AnalyzerLogLevel;
+    showProgressBar?: boolean;
 };
 
 /** A file path or package reference discovered in source content. */

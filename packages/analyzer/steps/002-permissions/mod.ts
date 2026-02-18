@@ -1,5 +1,4 @@
 import ProgressBar from "@deno-library/progress";
-import { showProgress } from "../../logging.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import type { Permission, Reference } from "skill-lab/shared";
 import { PROMPT_REGEX_RULES } from "../../rules/mod.ts";
@@ -24,14 +23,14 @@ export async function run002Permissions(
 
     next = seedPermissionsFromFrontmatter(next, skillMdPath);
 
-    const shouldRenderProgress = showProgress(context) && Deno.stdout.isTerminal();
+    const shouldRenderProgress = (context.showProgressBar ?? false) && Deno.stderr.isTerminal();
     const scanBar = shouldRenderProgress
         ? new ProgressBar({
             total: Math.max(1, next.scanQueue.length),
             clear: true,
             output: Deno.stderr,
-            complete: '=',
-            incomplete: '-',
+            complete: "=",
+            incomplete: "-",
             display: "Scanning skills [:bar] :percent ETA :eta",
         })
         : null;

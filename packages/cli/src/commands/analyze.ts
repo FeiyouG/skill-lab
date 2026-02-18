@@ -1,7 +1,7 @@
 import { Command } from "@cliffy/command";
 import { configure, getLogger, getStreamSink, getTextFormatter } from "@logtape/logtape";
-import type { AnalyzerLogger, AnalyzerLogLevel, AnalyzerResult } from "@FeiyouG/skill-lab-analyzer";
-import { formatAnalyzeResult } from "./analyze-format.ts";
+import type { AnalyzerLogger } from "@FeiyouG/skill-lab-analyzer";
+import { CLI_VERSION } from "../main.ts";
 
 type AnalyzeOptions = {
     gitRef?: string;
@@ -9,17 +9,10 @@ type AnalyzeOptions = {
     githubToken?: string;
     analyzer?: string;
     json?: boolean;
+    sarif?: boolean;
     verbose?: boolean;
     warn?: boolean;
     silence?: boolean;
-};
-
-const EXIT_CODE: Record<AnalyzerResult["riskLevel"], number> = {
-    safe: 0,
-    caution: 1,
-    attention: 1,
-    risky: 1,
-    avoid: 2,
 };
 
 export const analyzeCommand = new Command()
@@ -38,6 +31,7 @@ export const analyzeCommand = new Command()
     .option("--warn", "Only warnings and errors")
     .option("--silence", "Disable all logs")
     .option("--json", "Output as JSON")
+    .option("--sarif", "Output as SARIF 2.1.0 for GitHub Code Scanning upload")
     .action(async (options: AnalyzeOptions, path?: string) => {
         try {
             if (!path) {
@@ -47,7 +41,6 @@ export const analyzeCommand = new Command()
             }
 
             const { runAnalysis } = await import("@FeiyouG/skill-lab-analyzer");
-            const logLevel = resolveLogLevel(options);
 
             await configure({
                 reset: true,
@@ -64,19 +57,20 @@ export const analyzeCommand = new Command()
                 loggers: [
                     {
                         category: ["logtape", "meta"],
-                        sinks: logLevel === "silence" ? [] : ["stderr"],
+                        sinks: options.silence ? [] : ["stderr"],
                         lowestLevel: "error",
                     },
                     {
                         category: ["slab"],
-                        sinks: logLevel === "silence" ? [] : ["stderr"],
-                        lowestLevel: toLogtapeLevel(logLevel),
+                        sinks: options.silence ? [] : ["stderr"],
+                        lowestLevel: "debug",
                     },
                 ],
             });
 
             const slabLogger = getLogger(["slab", "analyzer"]);
-            const analyzerLogger = createAnalyzerLogger(slabLogger);
+            const analyzerLogger = createAnalyzerLogger(slabLogger, options);
+            const showProgressBar = resolveShowProgressBar(options);
 
             const result = await runAnalysis({
                 options: {
@@ -86,16 +80,18 @@ export const analyzeCommand = new Command()
                     githubToken: options.githubToken,
                 },
                 logger: analyzerLogger,
-                logLevel,
+                showProgressBar,
             });
 
-            if (options.json) {
-                console.log(JSON.stringify(result, null, 2));
-                Deno.exit(EXIT_CODE[result.riskLevel]);
+            if (options.sarif) {
+                console.log(await result.toSarif(CLI_VERSION));
+            } else if (options.json) {
+                console.log(result.toJson());
+            } else {
+                console.log(result.toString());
             }
 
-            console.log(formatAnalyzeResult(result));
-            Deno.exit(EXIT_CODE[result.riskLevel]);
+            Deno.exit(0);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(`Analyze failed: ${message}`);
@@ -103,42 +99,28 @@ export const analyzeCommand = new Command()
         }
     });
 
-function resolveLogLevel(options: AnalyzeOptions): AnalyzerLogLevel {
-    if (options.silence) return "silence";
-    if (options.warn || options.json) return "warn";
-    if (options.verbose) return "debug";
-    return "info";
+function resolveShowProgressBar(options: AnalyzeOptions): boolean {
+    return !(options.silence || options.json || options.sarif) && Deno.stderr.isTerminal();
 }
 
-function toLogtapeLevel(level: AnalyzerLogLevel): "debug" | "info" | "warning" | "error" {
-    switch (level) {
-        case "debug":
-            return "debug";
-        case "info":
-            return "info";
-        case "warn":
-            return "warning";
-        case "silence":
-            return "error";
-        default:
-            return "info";
-    }
-}
-
-function createAnalyzerLogger(logger: ReturnType<typeof getLogger>): AnalyzerLogger {
-    const format = (template: string, props?: Record<string, unknown>) => {
+function createAnalyzerLogger(
+    logger: ReturnType<typeof getLogger>,
+    options: AnalyzeOptions,
+): AnalyzerLogger {
+    const noop = () => {};
+    const fmt = (template: string, props?: Record<string, unknown>) => {
         if (!props || Object.keys(props).length === 0) return template;
         return `${template} ${JSON.stringify(props)}`;
     };
 
+    const silence = !!options.silence;
+    const warnOnly = !!(options.warn || options.json || options.sarif);
+    const verbose = !!options.verbose;
+
     return {
-        debug: (template: string, props?: Record<string, unknown>) =>
-            logger.debug(format(template, props)),
-        info: (template: string, props?: Record<string, unknown>) =>
-            logger.info(format(template, props)),
-        warn: (template: string, props?: Record<string, unknown>) =>
-            logger.warn(format(template, props)),
-        error: (template: string, props?: Record<string, unknown>) =>
-            logger.error(format(template, props)),
+        debug: silence || warnOnly || !verbose ? noop : (t, p) => logger.debug(fmt(t, p)),
+        info: silence || warnOnly ? noop : (t, p) => logger.info(fmt(t, p)),
+        warn: silence ? noop : (t, p) => logger.warn(fmt(t, p)),
+        error: silence ? noop : (t, p) => logger.error(fmt(t, p)),
     };
 }
