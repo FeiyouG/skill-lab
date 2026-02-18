@@ -14,7 +14,7 @@ function baseState(overrides: Partial<AnalyzerState> = {}): AnalyzerState {
         risks: [],
         warnings: [],
         metadata: {
-            scannedFiles: ["SKILL.md", "scripts/run.sh"],
+            scannedFiles: new Set(["SKILL.md", "scripts/run.sh"]),
             skippedFiles: [],
             rulesUsed: [],
             config: { maxFileSize: 1_000_000, maxFileCount: 100, maxScanDepth: 3 },
@@ -50,8 +50,7 @@ Deno.test("SkillAnalyzerResult.toString - renders empty sections with none", () 
     const out = new SkillAnalyzerResult(baseState()).toString();
     assertStringIncludes(out, "Analysis Results");
     assertStringIncludes(out, "Skill: demo-skill@1.2.3");
-    assertStringIncludes(out, "Permissions (0)");
-    assertStringIncludes(out, "    - none");
+    assertEquals(out.includes("Permissions (0)"), false);
     assertStringIncludes(out, "Risks (0)");
     assertStringIncludes(out, "Warnings (0)");
     assertStringIncludes(out, "Risk Level: safe");
@@ -81,11 +80,7 @@ Deno.test("SkillAnalyzerResult.toString - renders populated sections", () => {
     });
 
     const out = new SkillAnalyzerResult(state).toString();
-    assertStringIncludes(out, "Permissions (1)");
-    assertStringIncludes(out, "- read.read [fs]");
-    assertStringIncludes(out, "args: SKILL.md");
-    assertStringIncludes(out, "source: detected");
-    assertStringIncludes(out, "ref: SKILL.md:5 (frontmatter)");
+    assertEquals(out.includes("Permissions (1)"), false);
     assertStringIncludes(out, "Risks (1)");
     assertStringIncludes(out, "- warning NETWORK:external_network_access");
     assertStringIncludes(out, "message: Outbound HTTP call");
@@ -93,6 +88,55 @@ Deno.test("SkillAnalyzerResult.toString - renders populated sections", () => {
     assertStringIncludes(out, "permissions: perm-1");
     assertStringIncludes(out, "Warnings (1)");
     assertStringIncludes(out, "- External ref not analyzed: https://example.com");
+});
+
+Deno.test("SkillAnalyzerResult.toString - renders grouped risks under group header", () => {
+    const state = baseState({
+        risks: [
+            {
+                id: "risk-ungrouped",
+                type: "NETWORK:external_network_access",
+                severity: "warning",
+                message: "Outbound HTTP call",
+                reference: { file: "SKILL.md", line: 10, type: "script" },
+                permissions: [],
+            },
+            {
+                id: "risk-group-1",
+                type: "DEPENDENCY:external_import",
+                groupKey: "DEPENDENCY:external_import:python",
+                severity: "info",
+                message: "External import not explicitly configured: requests",
+                reference: { file: "SKILL.md", line: 24, type: "script" },
+                permissions: [],
+            },
+            {
+                id: "risk-group-2",
+                type: "DEPENDENCY:external_import",
+                groupKey: "DEPENDENCY:external_import:python",
+                severity: "info",
+                message: "External import not explicitly configured: PIL",
+                reference: { file: "SKILL.md", line: 25, type: "script" },
+                permissions: [],
+            },
+        ],
+    });
+
+    const out = new SkillAnalyzerResult(state).toString();
+
+    // Total count is flat
+    assertStringIncludes(out, "Risks (3)");
+
+    // Ungrouped risk renders normally (warning sorts before info)
+    assertStringIncludes(out, "- warning NETWORK:external_network_access");
+
+    // Group renders as a header followed by condensed entries
+    assertStringIncludes(out, "[DEPENDENCY:external_import:python] (info)");
+    assertStringIncludes(out, "- External import not explicitly configured: requests");
+    assertStringIncludes(out, "- External import not explicitly configured: PIL");
+
+    // Grouped risks do NOT appear as individual "- severity type" lines
+    assertEquals(out.includes("- info DEPENDENCY:external_import"), false);
 });
 
 // ---------------------------------------------------------------------------

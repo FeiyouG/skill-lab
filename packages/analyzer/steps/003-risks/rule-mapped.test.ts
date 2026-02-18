@@ -14,7 +14,7 @@ function createInitialState(): AnalyzerState {
         risks: [],
         warnings: [],
         metadata: {
-            scannedFiles: [],
+            scannedFiles: new Set<string>(),
             skippedFiles: [],
             rulesUsed: [],
             config: {
@@ -47,6 +47,7 @@ Deno.test("run003Risks resolves injection risk from rule-local mappedRisks", asy
     const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "INJECTION:command_injection");
+    assertEquals(result.risks[0].groupKey, "INJECTION:command_injection:eval");
     assertEquals(result.risks[0].permissions, ["sys-shell"]);
 });
 
@@ -71,6 +72,7 @@ Deno.test("run003Risks resolves prompt risk from prompt rule mappedRisks", async
     const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "PROMPT:prompt_override");
+    assertEquals(result.risks[0].groupKey, "PROMPT:prompt_override");
     assertEquals(result.risks[0].permissions, ["fs-read"]);
 });
 
@@ -96,6 +98,7 @@ Deno.test("run003Risks resolves network exfiltration from network evaluator cons
     const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "NETWORK:data_exfiltration");
+    assertEquals(result.risks[0].groupKey, "NETWORK:data_exfiltration:curl");
     assertEquals(result.risks[0].permissions, ["net-curl"]);
     assertEquals(result.risks[0].metadata?.host, "api.example.com");
     assertEquals(result.risks[0].metadata?.method, "POST");
@@ -123,6 +126,11 @@ Deno.test("run003Risks resolves network credential leak from network evaluator c
     const result = await run003Risks(state);
     const types = result.risks.map((risk) => risk.type).sort();
     assertEquals(types, ["NETWORK:credential_leak", "NETWORK:external_network_access"]);
+    const groupKeys = result.risks.map((risk) => risk.groupKey).sort();
+    assertEquals(groupKeys, [
+        "NETWORK:credential_leak:curl",
+        "NETWORK:external_network_access:curl",
+    ]);
 });
 
 Deno.test("run003Risks resolves remote code execution and warning from mapped rule", async () => {
@@ -147,6 +155,7 @@ Deno.test("run003Risks resolves remote code execution and warning from mapped ru
     const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "NETWORK:remote_code_execution");
+    assertEquals(result.risks[0].groupKey, "NETWORK:remote_code_execution:bash");
     assertEquals(
         result.warnings.includes("Remote script content analysis is NOT_IMPLEMENTED"),
         true,
@@ -174,6 +183,7 @@ Deno.test("run003Risks resolves secrets risk from shared secret evaluator consta
     const result = await run003Risks(state);
     assertEquals(result.risks.length, 1);
     assertEquals(result.risks[0].type, "SECRETS:secret_access");
+    assertEquals(result.risks[0].groupKey, "SECRETS:secret_access:env");
     assertEquals(result.risks[0].permissions, ["env-read"]);
 });
 

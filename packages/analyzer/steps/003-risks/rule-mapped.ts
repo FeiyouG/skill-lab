@@ -41,6 +41,7 @@ export function analyzeRuleMappedRisks(
 
             next = addRisk(next, {
                 type: risk.code,
+                groupKey: matchedPermission ? `${risk.code}:${matchedPermission.tool}` : risk.code,
                 severity: risk.severity,
                 message: risk.message,
                 permissionIds,

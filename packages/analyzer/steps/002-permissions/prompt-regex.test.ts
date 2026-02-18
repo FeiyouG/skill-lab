@@ -56,7 +56,7 @@ function createStateWithMarkdown(content: string): AnalyzerState {
         risks: [],
         warnings: [],
         metadata: {
-            scannedFiles: [],
+            scannedFiles: new Set<string>(),
             skippedFiles: [],
             rulesUsed: [],
             config: {

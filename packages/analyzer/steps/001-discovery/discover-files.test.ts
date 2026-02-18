@@ -182,7 +182,7 @@ scripts/package_skill.py <path/to/skill-folder>
 );
 
 Deno.test(
-    "discoverReferencedFiles - keeps unresolved imports as external library refs",
+    "discoverReferencedFiles - keeps unresolved imports as external import library refs",
     async () => {
         const content = `import requests\nfrom pathlib import Path\n`;
         const allFiles: SkillFile[] = [makeSkillFile("scripts/main.py")];
@@ -198,12 +198,14 @@ Deno.test(
         });
 
         const libraries = discovered.filter((item) =>
-            item.sourceType === "external" && item.role === "library"
+            item.sourceType === "external" && item.role === "library" &&
+            item.discoveryMethod === "import"
         );
         const paths = libraries.map((item) => item.path);
 
         assertEquals(paths.includes("requests"), true);
         assertEquals(paths.includes("pathlib"), true);
+        assertEquals(libraries.every((item) => item.fileType === "python"), true);
     },
 );
 
@@ -229,5 +231,7 @@ Deno.test(
         );
 
         assertEquals(Boolean(sourceLibrary), true);
+        assertEquals(sourceLibrary?.fileType, "bash");
+        assertEquals(sourceLibrary?.discoveryMethod, "source");
     },
 );

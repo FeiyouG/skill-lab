@@ -73,17 +73,19 @@ export const analyzeCommand = new Command()
             const showProgressBar = resolveShowProgressBar(options);
             const config = await loadAnalyzerConfig();
 
-            const result = await runAnalysis({
-                options: {
-                    source: path,
-                    subDir: options.subDir,
-                    gitRef: options.gitRef,
-                    githubToken: options.githubToken,
-                },
-                config: config as Partial<AnalyzerConfig>,
-                logger: analyzerLogger,
-                showProgressBar,
-            } as Parameters<typeof runAnalysis>[0]) as unknown as {
+            const result = await runAnalysis(
+                {
+                    options: {
+                        source: path,
+                        subDir: options.subDir,
+                        gitRef: options.gitRef,
+                        githubToken: options.githubToken,
+                    },
+                    config: config as Partial<AnalyzerConfig>,
+                    logger: analyzerLogger,
+                    showProgressBar,
+                } as Parameters<typeof runAnalysis>[0],
+            ) as unknown as {
                 toSarif: (version: string) => Promise<string>;
                 toJson: () => string;
                 toString: () => string;

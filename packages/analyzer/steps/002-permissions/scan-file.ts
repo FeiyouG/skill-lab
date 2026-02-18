@@ -69,7 +69,7 @@ export async function scanFileForPermissions(
             ...state,
             metadata: {
                 ...state.metadata,
-                scannedFiles: [...state.metadata.scannedFiles, scanPath],
+                scannedFiles: new Set([...state.metadata.scannedFiles, scanPath]),
             },
         };
     }
@@ -80,10 +80,11 @@ export async function scanFileForPermissions(
     const filteredMatches = matches.filter((match) =>
         shouldKeepMatchForBlock(match, lineOffset + 1, lines)
     );
+    const deconflictedMatches = dropGenericShellDuplicates(filteredMatches, rules);
     const blockFindings = context.astgrepClient.matchesToFindings(
         scanPath,
         referenceType,
-        filteredMatches.map((match) => ({
+        deconflictedMatches.map((match) => ({
             ...match,
             line: match.line + lineOffset,
             lineEnd: (match.lineEnd ?? match.line) + lineOffset,
@@ -127,7 +128,7 @@ export async function scanFileForPermissions(
         metadata: {
             ...state.metadata,
             rulesUsed,
-            scannedFiles: [...state.metadata.scannedFiles, scanPath],
+            scannedFiles: new Set([...state.metadata.scannedFiles, scanPath]),
         },
     };
 }
@@ -221,4 +222,37 @@ function buildPermissionArgs(metadata: Record<string, unknown>, detectedTool: st
     }
 
     return args;
+}
+
+function dropGenericShellDuplicates(
+    matches: AstGrepMatch[],
+    rules: Array<{ id: string; permission: { tool: string } }>,
+): AstGrepMatch[] {
+    const ruleById = new Map(rules.map((rule) => [rule.id, rule]));
+    const specificToolAtLine = new Set<string>();
+
+    for (const match of matches) {
+        if (match.ruleId === GENERIC_SHELL_RULE_ID) continue;
+        const rule = ruleById.get(match.ruleId);
+        if (!rule) continue;
+        const tool = resolveToolForMatch(rule.permission.tool, match.extracted);
+        if (!tool) continue;
+        specificToolAtLine.add(`${match.line}:${tool}`);
+    }
+
+    return matches.filter((match) => {
+        if (match.ruleId !== GENERIC_SHELL_RULE_ID) return true;
+        const rule = ruleById.get(match.ruleId);
+        if (!rule) return true;
+        const tool = resolveToolForMatch(rule.permission.tool, match.extracted);
+        if (!tool) return true;
+        return !specificToolAtLine.has(`${match.line}:${tool}`);
+    });
+}
+
+function resolveToolForMatch(ruleTool: string, extracted: Record<string, unknown>): string | null {
+    if (ruleTool !== "detected") return ruleTool.toLowerCase();
+    const tool = extracted.tool;
+    if (typeof tool !== "string" || !tool.trim()) return null;
+    return tool.trim().toLowerCase();
 }

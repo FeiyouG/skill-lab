@@ -71,11 +71,11 @@ Precedence: denylist overrides allowlist when the same import or domain appears 
 
 ```json
 {
-  "scan": {
-    "maxFileSize": 1000000,
-    "maxFileCount": 100,
-    "maxScanDepth": 5
-  },
+    "scan": {
+        "maxFileSize": 1000000,
+        "maxFileCount": 100,
+        "maxScanDepth": 5
+    }
 }
 ```
 
@@ -92,13 +92,13 @@ Defaults:
 
 ```json
 {
-  "allowlist": {
-    "languages": {
-      "python": {
-        "imports": ["A", "B"]
-      }
+    "allowlist": {
+        "languages": {
+            "python": {
+                "imports": ["A", "B"]
+            }
+        }
     }
-  }
 }
 ```
 
@@ -106,13 +106,13 @@ Caller config:
 
 ```json
 {
-  "allowlist": {
-    "languages": {
-      "python": {
-        "imports": ["B", "C", "D"]
-      }
+    "allowlist": {
+        "languages": {
+            "python": {
+                "imports": ["B", "C", "D"]
+            }
+        }
     }
-  }
 }
 ```
 
@@ -120,12 +120,12 @@ Effective config:
 
 ```json
 {
-  "allowlist": {
-    "languages": {
-      "python": {
-        "imports": ["A", "B", "C", "D"]
-      }
+    "allowlist": {
+        "languages": {
+            "python": {
+                "imports": ["A", "B", "C", "D"]
+            }
+        }
     }
-  }
 }
 ```

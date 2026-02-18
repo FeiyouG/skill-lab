@@ -1,8 +1,8 @@
 import { ReferenceType } from "./references.ts";
 
 export type Frontmatter = {
-    startLineNumer?: number;
-    endLineNumer?: number;
+    startLineNumber?: number;
+    endLineNumber?: number;
     name?: string;
     description?: string;
     [key: string]: unknown;

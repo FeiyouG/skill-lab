@@ -94,7 +94,7 @@ export class SkillAnalyzerResult {
     }
 
     get metadata(): {
-        scannedFiles: string[];
+        scannedFiles: Set<string>;
         skippedFiles: Array<{ path: string; reason: string }>;
         rulesUsed: string[];
         frontmatterRangeEnd?: number;
@@ -142,38 +142,71 @@ export class SkillAnalyzerResult {
         lines.push(hr);
         lines.push(`${INDENT}Skill: ${this.skillId}@${this.skillVersionId}`);
 
-        lines.push("");
-        lines.push(`${INDENT}Permissions (${this.permissions.length})`);
-        if (this.permissions.length === 0) {
-            lines.push(`${SUB_INDENT}- none`);
-        } else {
-            for (const p of this.permissions) {
-                lines.push(`${SUB_INDENT}- ${p.tool}.${p.permission} [${p.scope}]`);
-                if (p.args && p.args.length > 0) {
-                    lines.push(`${SUB_INDENT}${INDENT}args: ${p.args.join(", ")}`);
-                }
-                lines.push(`${SUB_INDENT}${INDENT}source: ${p.source}`);
-                if (p.references.length > 0) {
-                    lines.push(
-                        `${SUB_INDENT}${INDENT}ref: ${_formatRef(p.references[0])}`,
-                    );
-                }
-            }
-        }
+        // lines.push("");
+        // lines.push(`${INDENT}Permissions (${this.permissions.length})`);
+        // if (this.permissions.length === 0) {
+        //     lines.push(`${SUB_INDENT}- none`);
+        // } else {
+        //     for (const p of this.permissions) {
+        //         lines.push(`${SUB_INDENT}- ${p.tool}.${p.permission} [${p.scope}]`);
+        //         if (p.args && p.args.length > 0) {
+        //             lines.push(`${SUB_INDENT}${INDENT}args: ${p.args.join(", ")}`);
+        //         }
+        //         lines.push(`${SUB_INDENT}${INDENT}source: ${p.source}`);
+        //         if (p.references.length > 0) {
+        //             lines.push(
+        //                 `${SUB_INDENT}${INDENT}ref: ${_formatRef(p.references[0])}`,
+        //             );
+        //         }
+        //     }
+        // }
 
         lines.push("");
         lines.push(`${INDENT}Risks (${this.risks.length})`);
         if (this.risks.length === 0) {
             lines.push(`${SUB_INDENT}- none`);
         } else {
+            const SEVERITY_ORDER: Record<string, number> = { critical: 0, warning: 1, info: 2 };
+
+            const groups = new Map<string, Risk[]>();
             for (const r of this.risks) {
-                lines.push(`${SUB_INDENT}- ${r.severity} ${r.type}`);
-                lines.push(`${SUB_INDENT}${INDENT}message: ${r.message}`);
-                lines.push(`${SUB_INDENT}${INDENT}ref: ${_formatRef(r.reference)}`);
-                if (r.permissions.length > 0) {
-                    lines.push(
-                        `${SUB_INDENT}${INDENT}permissions: ${r.permissions.join(", ")}`,
-                    );
+                const key = r.groupKey ?? `${r.type}:${r.reference.file}:${r.reference.line}`;
+                const bucket = groups.get(key) ?? [];
+                bucket.push(r);
+                groups.set(key, bucket);
+            }
+
+            const sortedGroups = Array.from(groups.entries())
+                .map(([groupKey, risks]) => ({
+                    groupKey,
+                    risks,
+                    sortKey: Math.min(...risks.map((r) => SEVERITY_ORDER[r.severity] ?? 99)),
+                }))
+                .sort((a, b) => a.sortKey - b.sortKey);
+
+            for (const group of sortedGroups) {
+                if (group.risks.length === 1) {
+                    const r = group.risks[0];
+                    lines.push(`${SUB_INDENT}- ${r.severity} ${r.type}`);
+                    lines.push(`${SUB_INDENT}${INDENT}message: ${r.message}`);
+                    lines.push(`${SUB_INDENT}${INDENT}ref: ${_formatRef(r.reference)}`);
+                    if (r.permissions.length > 0) {
+                        lines.push(
+                            `${SUB_INDENT}${INDENT}permissions: ${r.permissions.join(", ")}`,
+                        );
+                    }
+                    continue;
+                }
+
+                const topRisk = group.risks.reduce((best, r) =>
+                    (SEVERITY_ORDER[r.severity] ?? 99) < (SEVERITY_ORDER[best.severity] ?? 99)
+                        ? r
+                        : best
+                );
+                lines.push(`${SUB_INDENT}[${group.groupKey}] (${topRisk.severity})`);
+                for (const r of group.risks) {
+                    lines.push(`${SUB_INDENT}${INDENT}- ${r.message}`);
+                    lines.push(`${SUB_INDENT}${INDENT}  ref: ${_formatRef(r.reference)}`);
                 }
             }
         }
@@ -212,7 +245,10 @@ export class SkillAnalyzerResult {
                 riskLevel: this.riskLevel,
                 summary: this.summary,
                 warnings: this.warnings,
-                metadata: this.metadata,
+                metadata: {
+                    ...this.metadata,
+                    scannedFiles: [...this.metadata.scannedFiles],
+                },
             },
             null,
             2,
@@ -287,7 +323,7 @@ export class SkillAnalyzerResult {
         }
 
         // --- artifacts ---
-        const artifacts = this.metadata.scannedFiles.map((f) => ({
+        const artifacts = [...this.metadata.scannedFiles].map((f) => ({
             location: { uri: f, uriBaseId: "%SRCROOT%" },
         }));
 

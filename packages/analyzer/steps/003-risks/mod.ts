@@ -2,6 +2,7 @@ import ProgressBar from "@deno-library/progress";
 import { SkillAnalyzerResult } from "../../result.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { DEFAULT_ANALYZER_CONFIG, resolveConfig } from "../../config.ts";
+import { analyzeDependencyRisks } from "./dep-risks.ts";
 import { analyzeRuleMappedRisks } from "./rule-mapped.ts";
 
 const REMOTE_SCRIPT_WARNING = "Remote script content analysis is NOT_IMPLEMENTED";
@@ -33,6 +34,7 @@ export async function run003Risks(
         const resolvedContext = {
             config: context?.config ?? resolveConfig(DEFAULT_ANALYZER_CONFIG),
         };
+        next = analyzeDependencyRisks(next, resolvedContext);
         next = analyzeRuleMappedRisks(next, resolvedContext, () => {
             processed += 1;
             if (riskBar) {

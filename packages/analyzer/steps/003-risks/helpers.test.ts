@@ -23,7 +23,7 @@ function createState(): AnalyzerState {
         risks: [],
         warnings: [],
         metadata: {
-            scannedFiles: [],
+            scannedFiles: new Set<string>(),
             skippedFiles: [],
             rulesUsed: [],
             config: { maxFileSize: 1, maxFileCount: 1, maxScanDepth: 1 },

@@ -57,7 +57,7 @@ function createBaseState(content: string): AnalyzerState {
         risks: [],
         warnings: [],
         metadata: {
-            scannedFiles: [],
+            scannedFiles: new Set<string>(),
             skippedFiles: [],
             rulesUsed: [],
             config: {
@@ -129,13 +129,13 @@ Deno.test("run002Permissions keeps true inline command detection", async () => {
     assertEquals(gitPermissions.length > 0, true);
 });
 
-Deno.test("run002Permissions warns and skips external library refs", async () => {
+Deno.test("run002Permissions adds dep import permission for unresolved imports", async () => {
     const content = "# Skill";
     const state = createBaseState(content);
     state.scanQueue.push({
         path: "requests",
         sourceType: "external",
-        fileType: "unknown",
+        fileType: "python",
         role: "library",
         depth: 1,
         discoveryMethod: "import",
@@ -148,11 +148,12 @@ Deno.test("run002Permissions warns and skips external library refs", async () =>
 
     const next = await run002Permissions(state, createContext({ "SKILL.md": content }));
 
+    const depImportPerms = next.permissions.filter((permission) =>
+        permission.scope === "dep" && permission.permission === "import"
+    );
     assertEquals(
-        next.warnings.some((warning) =>
-            warning.includes("External library/import not analyzed yet: requests")
-        ),
-        true,
+        depImportPerms.length,
+        1,
     );
     assertEquals(
         next.metadata.skippedFiles.some((entry) =>

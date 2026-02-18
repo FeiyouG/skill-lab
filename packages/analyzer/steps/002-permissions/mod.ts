@@ -43,42 +43,23 @@ export async function run002Permissions(
                 if (fileRef.sourceType === "external") {
                     if (fileRef.role === "host-fs") {
                         next = addHostFsPermission(next, fileRef.path, fileRef.referencedBy);
-                    } else if (fileRef.role === "library") {
-                        next = {
-                            ...next,
-                            warnings: [
-                                ...next.warnings,
-                                `External library/import not analyzed yet: ${fileRef.path}`,
-                            ],
-                            metadata: {
-                                ...next.metadata,
-                                skippedFiles: [...next.metadata.skippedFiles, {
-                                    path: fileRef.path,
-                                    reason: "external_library_dependency",
-                                    referenceBy: fileRef.referencedBy,
-                                }],
-                            },
-                        };
-                    } else if (
-                        fileRef.discoveryMethod === "markdown-link" ||
-                        fileRef.discoveryMethod === "url" ||
-                        fileRef.discoveryMethod === undefined
-                    ) {
-                        next = {
-                            ...next,
-                            warnings: [
-                                ...next.warnings,
-                                `External reference not analyzed yet: ${fileRef.path}`,
-                            ],
-                            metadata: {
-                                ...next.metadata,
-                                skippedFiles: [...next.metadata.skippedFiles, {
-                                    path: fileRef.path,
-                                    reason: "external_reference",
-                                    referenceBy: fileRef.referencedBy,
-                                }],
-                            },
-                        };
+                    } else if (fileRef.discoveryMethod === "import") {
+                        next = addImportDependencyPermission(next, fileRef);
+                        next = appendSkippedFile(next, {
+                            path: fileRef.path,
+                            reason: "external_library_dependency",
+                            referenceBy: fileRef.referencedBy,
+                        });
+                    } else {
+                        next = addExternalReferencePermission(next, fileRef);
+                        const reason = fileRef.role === "library"
+                            ? "external_library_dependency"
+                            : "external_reference";
+                        next = appendSkippedFile(next, {
+                            path: fileRef.path,
+                            reason,
+                            referenceBy: fileRef.referencedBy,
+                        });
                     }
                     continue;
                 }
@@ -235,6 +216,87 @@ function applyPromptRegexFindings(
     }
 
     return { ...state, findings };
+}
+
+function appendSkippedFile(
+    state: AnalyzerState,
+    skipped: AnalyzerState["metadata"]["skippedFiles"][number],
+): AnalyzerState {
+    return {
+        ...state,
+        metadata: {
+            ...state.metadata,
+            skippedFiles: [...state.metadata.skippedFiles, skipped],
+        },
+    };
+}
+
+function addImportDependencyPermission(
+    state: AnalyzerState,
+    fileRef: AnalyzerState["scanQueue"][number],
+): AnalyzerState {
+    const language = fileRef.fileType;
+    const importName = fileRef.path;
+    const metadata: Record<string, unknown> = {
+        language,
+        discoveryMethod: fileRef.discoveryMethod,
+    };
+    const permission: Permission = {
+        id: generatePermissionId("dep-import", [language, importName]),
+        tool: language,
+        scope: "dep",
+        permission: "import",
+        args: [importName],
+        metadata,
+        references: [toPermissionReference(fileRef)],
+        source: "inferred",
+        risks: [],
+    };
+
+    if (state.permissions.some((p) => p.id === permission.id)) return state;
+    return {
+        ...state,
+        permissions: [...state.permissions, permission],
+    };
+}
+
+function addExternalReferencePermission(
+    state: AnalyzerState,
+    fileRef: AnalyzerState["scanQueue"][number],
+): AnalyzerState {
+    const path = fileRef.path;
+    const language = fileRef.fileType ?? "unknown";
+    const metadata: Record<string, unknown> = {
+        language,
+        discoveryMethod: fileRef.discoveryMethod,
+    };
+    const permission: Permission = {
+        id: generatePermissionId("dep-externalreference", [language, path]),
+        tool: language,
+        scope: "dep",
+        permission: "externalreference",
+        args: [path],
+        metadata,
+        references: [toPermissionReference(fileRef)],
+        source: "inferred",
+        risks: [],
+    };
+
+    if (state.permissions.some((p) => p.id === permission.id)) return state;
+    return {
+        ...state,
+        permissions: [...state.permissions, permission],
+    };
+}
+
+function toPermissionReference(fileRef: AnalyzerState["scanQueue"][number]): Reference {
+    return {
+        file: fileRef.referencedBy?.file ?? fileRef.path,
+        line: fileRef.referencedBy?.line ?? 1,
+        lineEnd: fileRef.referencedBy?.lineEnd,
+        type: fileRef.referencedBy?.type ?? "content",
+        referencedBy: fileRef.referencedBy?.referencedBy,
+    };
 }
 
 function addHostFsPermission(

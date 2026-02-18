@@ -8,18 +8,8 @@ import { SkillReaderFactory } from "../skillreader/factory.ts";
 import { TreesitterClient } from "./treesitter/client.ts";
 import { AstGrepClient } from "./astgrep/mod.ts";
 
-export type {
-    AnalyzerLogger,
-    AnalyzerState,
-    AnalyzerConfig,
-} from "./types.ts";
-export type {
-    Allowlist,
-    Denylist,
-    LanguagePolicy,
-    NetworkPolicy,
-    ScanConfig,
-} from "./config.ts";
+export type { AnalyzerConfig, AnalyzerLogger, AnalyzerState } from "./types.ts";
+export type { Allowlist, Denylist, LanguagePolicy, NetworkPolicy, ScanConfig } from "./config.ts";
 
 export { SkillAnalyzerResult } from "./result.ts";
 export { DEFAULT_ANALYZER_CONFIG, DEFAULT_SKILL_VERSION, resolveConfig } from "./config.ts";
@@ -112,7 +102,7 @@ export function createInitialState(input?: {
         risks: [],
         warnings: [],
         metadata: {
-            scannedFiles: [],
+            scannedFiles: new Set<string>(),
             skippedFiles: [],
             rulesUsed: [],
             config: scan,

@@ -146,11 +146,24 @@ export async function discoverReferencedFiles(
                     continue;
                 }
 
-                if (absoluteRef.via === "import" || absoluteRef.via === "source") {
+                if (absoluteRef.via === "import") {
                     discovered.set(normalizedPath, {
                         path: normalizedPath,
                         sourceType: "external",
-                        fileType: "unknown",
+                        fileType: block.language,
+                        role: "library",
+                        depth: current.depth + 1,
+                        discoveryMethod: absoluteRef.via,
+                        referencedBy: referenceFromCurrent,
+                    });
+                    continue;
+                }
+
+                if (absoluteRef.via === "source") {
+                    discovered.set(normalizedPath, {
+                        path: normalizedPath,
+                        sourceType: "external",
+                        fileType: block.language,
                         role: "library",
                         depth: current.depth + 1,
                         discoveryMethod: absoluteRef.via,

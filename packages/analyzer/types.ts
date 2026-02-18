@@ -33,7 +33,7 @@ export type AnalyzerState = {
     risks: Risk[];
     warnings: string[];
     metadata: {
-        scannedFiles: string[];
+        scannedFiles: Set<string>;
         skippedFiles: Array<{ path: string; reason: string; referenceBy?: Reference }>;
         rulesUsed: string[];
         config: ScanConfig;

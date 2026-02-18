@@ -9,10 +9,10 @@ The format is documented in [Configurations](/guide/configurations).
 
 The config directory is resolved in this priority order:
 
-1. If **`$SKILL_LAB_CONFIG_DIR`** is set, 
+1. If **`$SKILL_LAB_CONFIG_DIR`** is set,
    source from `$SKILL_LAB_CONFIG_DIR/config.json`
 
-2. If **`$XDG_CONFIG_DIR`** is set, 
+2. If **`$XDG_CONFIG_DIR`** is set,
    source from `$XDG_CONFIG_DIR/skill-lab/config.json`.
 
 3. Otherwise, `slab` will try to fetch config.json from
@@ -21,9 +21,8 @@ The config directory is resolved in this priority order:
 
 4. If no config files found, use default config.
 
-For how to write configuration files, 
+For how to write configuration files,
 please refere to [configuration guide](/guide/configurations)
-
 
 ## Grammar cache
 

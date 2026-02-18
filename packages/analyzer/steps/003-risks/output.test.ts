@@ -14,7 +14,7 @@ function createState(): AnalyzerState {
         risks: [],
         warnings: ["w1"],
         metadata: {
-            scannedFiles: ["a"],
+            scannedFiles: new Set(["a"]),
             skippedFiles: [{ path: "x", reason: "external_reference" }],
             rulesUsed: ["r"],
             config: { maxFileSize: 1, maxFileCount: 1, maxScanDepth: 1 },

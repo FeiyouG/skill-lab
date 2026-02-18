@@ -8,6 +8,7 @@ import { GH_RULES } from "./gh.ts";
 import { GIT_RULES } from "./git.ts";
 import { NODE_ECOSYSTEM_RULES } from "./node.ts";
 import { OPENSPEC_RULES } from "./openspec.ts";
+import { PIP_RULES } from "./pip.ts";
 import { SUDO_RULES } from "./sudo.ts";
 
 export * from "./bd.ts";
@@ -19,12 +20,14 @@ export * from "./gh.ts";
 export * from "./git.ts";
 export * from "./node.ts";
 export * from "./openspec.ts";
+export * from "./pip.ts";
 export * from "./sudo.ts";
 
 export const BASH_COMMAND_RULES: AstGrepRule[] = [
     ...GIT_RULES,
     ...GH_RULES,
     ...NODE_ECOSYSTEM_RULES,
+    ...PIP_RULES,
     ...DOCKER_RULES,
     ...BD_RULES,
     ...SUDO_RULES,
