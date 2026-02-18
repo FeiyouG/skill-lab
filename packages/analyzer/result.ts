@@ -1,6 +1,6 @@
 import type { Permission, Risk } from "skill-lab/shared";
 import { scoreState } from "./steps/003-risks/scoring.ts";
-import type { AnalyzerConfig, AnalyzerState } from "./types.ts";
+import type { AnalyzerState, ScanConfig } from "./types.ts";
 
 const INDENT = "  ";
 const SUB_INDENT = "    ";
@@ -98,7 +98,7 @@ export class SkillAnalyzerResult {
         skippedFiles: Array<{ path: string; reason: string }>;
         rulesUsed: string[];
         frontmatterRangeEnd?: number;
-        config: AnalyzerConfig;
+        config: ScanConfig;
     } {
         return this.state.metadata;
     }

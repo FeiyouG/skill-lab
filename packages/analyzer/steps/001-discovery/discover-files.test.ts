@@ -3,6 +3,7 @@ import { discoverReferencedFiles } from "./discover-files.ts";
 import type { SkillFile } from "@FeiyouG/skill-lab";
 import { AstGrepClient } from "../../astgrep/client.ts";
 import { TreesitterClient } from "../../treesitter/client.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
 import type { AnalyzerContext } from "../../types.ts";
 
 // Minimal SkillFile for test use
@@ -15,6 +16,7 @@ function makeContext(): AnalyzerContext {
         astgrepClient: new AstGrepClient(),
         treesitterClient: new TreesitterClient(),
         skillReader: null as unknown as AnalyzerContext["skillReader"],
+        config: DEFAULT_ANALYZER_CONFIG,
     };
 }
 

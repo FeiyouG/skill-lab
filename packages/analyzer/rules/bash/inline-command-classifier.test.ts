@@ -1,10 +1,12 @@
 import { assertEquals } from "@std/assert";
 import { AstGrepClient } from "../../astgrep/client.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
 import type { AnalyzerContext } from "../../types.ts";
 import { isLikelyInlineBashCommand } from "./inline-command-classifier.ts";
 
 const context = {
     astgrepClient: new AstGrepClient(),
+    config: DEFAULT_ANALYZER_CONFIG,
 } as AnalyzerContext;
 
 Deno.test("inline classifier: true for specific bash command rules", async () => {

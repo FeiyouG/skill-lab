@@ -1,6 +1,7 @@
 import ProgressBar from "@deno-library/progress";
 import { SkillAnalyzerResult } from "../../result.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
+import { DEFAULT_ANALYZER_CONFIG, resolveConfig } from "../../config.ts";
 import { analyzeRuleMappedRisks } from "./rule-mapped.ts";
 
 const REMOTE_SCRIPT_WARNING = "Remote script content analysis is NOT_IMPLEMENTED";
@@ -9,7 +10,7 @@ const ENCODER = new TextEncoder();
 
 export async function run003Risks(
     state: AnalyzerState,
-    context?: Pick<AnalyzerContext, "showProgressBar">,
+    context?: Pick<AnalyzerContext, "showProgressBar" | "config">,
 ): Promise<SkillAnalyzerResult> {
     let next = state;
 
@@ -29,7 +30,10 @@ export async function run003Risks(
             await riskBar.render(processed);
         }
 
-        next = analyzeRuleMappedRisks(next, () => {
+        const resolvedContext = {
+            config: context?.config ?? resolveConfig(DEFAULT_ANALYZER_CONFIG),
+        };
+        next = analyzeRuleMappedRisks(next, resolvedContext, () => {
             processed += 1;
             if (riskBar) {
                 void riskBar.render(processed);

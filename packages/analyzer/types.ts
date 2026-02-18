@@ -12,12 +12,8 @@ import type {
 } from "skill-lab/shared";
 import { AstGrepClient } from "./astgrep/client.ts";
 import { TreesitterClient } from "./treesitter/client.ts";
-
-export type AnalyzerConfig = {
-    maxFileSize: number;
-    maxFileCount: number;
-    maxScanDepth: number;
-};
+import type { AnalyzerConfig, ScanConfig } from "./config.ts";
+export type { AnalyzerConfig, ScanConfig };
 
 export type AnalyzerLogger = {
     debug: (template: string, props?: Record<string, unknown>) => void;
@@ -40,7 +36,7 @@ export type AnalyzerState = {
         scannedFiles: string[];
         skippedFiles: Array<{ path: string; reason: string; referenceBy?: Reference }>;
         rulesUsed: string[];
-        config: AnalyzerConfig;
+        config: ScanConfig;
     };
 };
 
@@ -50,6 +46,8 @@ export type AnalyzerContext = {
     astgrepClient: AstGrepClient;
     logger?: AnalyzerLogger;
     showProgressBar?: boolean;
+    /** Resolved (defaults-merged) user config. */
+    config: AnalyzerConfig;
 };
 
 /** A file path or package reference discovered in source content. */

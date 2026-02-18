@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { AstGrepClient } from "../../astgrep/client.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { scanFileForPermissions } from "./scan-file.ts";
 
@@ -27,7 +28,10 @@ function createState(): AnalyzerState {
     };
 }
 
-const context = { astgrepClient: new AstGrepClient() } as AnalyzerContext;
+const context = {
+    astgrepClient: new AstGrepClient(),
+    config: DEFAULT_ANALYZER_CONFIG,
+} as AnalyzerContext;
 
 Deno.test("scanFileForPermissions no rules path only records scanned file", async () => {
     const state = createState();

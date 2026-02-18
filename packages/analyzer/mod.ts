@@ -1,4 +1,4 @@
-import { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
+import { DEFAULT_ANALYZER_CONFIG, DEFAULT_SKILL_VERSION, resolveConfig } from "./config.ts";
 import { NO_OP_LOGGER } from "./logging.ts";
 import { SkillAnalyzerResult } from "./result.ts";
 import { run001Discovery, run002Permissions, run003Risks } from "./steps/mod.ts";
@@ -8,10 +8,21 @@ import { SkillReaderFactory } from "../skillreader/factory.ts";
 import { TreesitterClient } from "./treesitter/client.ts";
 import { AstGrepClient } from "./astgrep/mod.ts";
 
-export type { AnalyzerConfig, AnalyzerLogger, AnalyzerState } from "./types.ts";
+export type {
+    AnalyzerLogger,
+    AnalyzerState,
+    AnalyzerConfig,
+} from "./types.ts";
+export type {
+    Allowlist,
+    Denylist,
+    LanguagePolicy,
+    NetworkPolicy,
+    ScanConfig,
+} from "./config.ts";
 
 export { SkillAnalyzerResult } from "./result.ts";
-export { DEFAULT_CONFIG, DEFAULT_SKILL_VERSION } from "./config.ts";
+export { DEFAULT_ANALYZER_CONFIG, DEFAULT_SKILL_VERSION, resolveConfig } from "./config.ts";
 
 export type AnalyzerAnalyzeInput = SkillReaderFactoryOptions & {
     skillId?: string;
@@ -47,10 +58,12 @@ export async function runAnalysis(input: {
     logger?: AnalyzerLogger;
     showProgressBar?: boolean;
 }): Promise<SkillAnalyzerResult> {
+    const config = resolveConfig(input.config);
+
     let state = createInitialState({
         skillId: input.skillId,
         skillVersionId: input.skillVersionId,
-        config: input.config,
+        config,
     });
 
     const skillReader = await SkillReaderFactory.create(input.options);
@@ -69,6 +82,7 @@ export async function runAnalysis(input: {
         astgrepClient: new AstGrepClient(logger, showProgressBar),
         logger,
         showProgressBar,
+        config,
     };
 
     state = await run001Discovery(state, context);
@@ -81,6 +95,12 @@ export function createInitialState(input?: {
     skillVersionId?: string;
     config?: Partial<AnalyzerConfig>;
 }): AnalyzerState {
+    const resolvedConfig = resolveConfig(input?.config);
+    const scan = resolvedConfig.scan ?? DEFAULT_ANALYZER_CONFIG.scan ?? {
+        maxFileSize: 1_000_000,
+        maxFileCount: 100,
+        maxScanDepth: 5,
+    };
     return {
         skillId: input?.skillId ?? "unknown",
         skillVersionId: input?.skillVersionId ?? DEFAULT_SKILL_VERSION,
@@ -95,10 +115,7 @@ export function createInitialState(input?: {
             scannedFiles: [],
             skippedFiles: [],
             rulesUsed: [],
-            config: {
-                ...DEFAULT_CONFIG,
-                ...(input?.config ?? {}),
-            },
+            config: scan,
         },
     };
 }

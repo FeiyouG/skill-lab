@@ -13,6 +13,8 @@ await analyzer.analyze({
   skillId?: string,
   skillVersionId?: string,
   config?: Partial<AnalyzerConfig>,
+  logger?: AnalyzerLogger,
+  showProgressBar?: boolean,
 });
 ```
 
@@ -26,7 +28,9 @@ runAnalysis(input: {
   skillId?: string;
   skillVersionId?: string;
   config?: Partial<AnalyzerConfig>;
-}): Promise<AnalyzerResult>
+  logger?: AnalyzerLogger;
+  showProgressBar?: boolean;
+}): Promise<SkillAnalyzerResult>
 ```
 
 ### Input
@@ -40,9 +44,19 @@ export type SkillReaderFactoryOptions = {
 };
 
 export type AnalyzerConfig = {
-    maxFileSize: number;
-    maxFileCount: number;
-    maxScanDepth: number;
+    scan?: {
+        maxFileSize?: number;
+        maxFileCount?: number;
+        maxScanDepth?: number;
+    };
+    allowlist?: {
+        languages?: Record<string, { imports?: string[] }>;
+        network?: { domains?: string[] };
+    };
+    denylist?: {
+        languages?: Record<string, { imports?: string[] }>;
+        network?: { domains?: string[] };
+    };
 };
 ```
 
@@ -50,6 +64,15 @@ export type AnalyzerConfig = {
 - `skillVersionId`: optional version identifier to attach to output
 
 ### Output
+
+`runAnalysis` returns `SkillAnalyzerResult`, which wraps analyzer state and can be
+serialized in multiple formats:
+
+- `toString()`
+- `toJson()`
+- `toSarif(toolVersion)`
+
+`SkillAnalyzerResult` includes:
 
 - `permissions: Permission[]`
 - `risks: Risk[]`
@@ -59,5 +82,8 @@ export type AnalyzerConfig = {
 - `warnings: string[]`
 - `metadata`: scanned/skipped files, rules used, effective config
 
-Other exported helpers include `createInitialState`, `DEFAULT_CONFIG`, and
-`DEFAULT_SKILL_VERSION`.
+For the full config schema and merge behavior, see
+[Configurations](/guide/configurations).
+
+Other exported helpers include `createInitialState`, `DEFAULT_ANALYZER_CONFIG`,
+and `DEFAULT_SKILL_VERSION`.

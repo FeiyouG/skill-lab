@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { AstGrepClient } from "../../astgrep/client.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { scanFileForPermissions } from "./scan-file.ts";
 
@@ -39,6 +40,7 @@ Deno.test("scanFileForPermissions keeps generic shell matches to likely commands
     const state = createInitialState();
     const context = {
         astgrepClient: new AstGrepClient(),
+        config: DEFAULT_ANALYZER_CONFIG,
     } as AnalyzerContext;
     const next = await scanFileForPermissions(context, {
         state,

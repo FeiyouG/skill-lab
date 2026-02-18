@@ -1,7 +1,9 @@
 import { Command } from "@cliffy/command";
 import { configure, getLogger, getStreamSink, getTextFormatter } from "@logtape/logtape";
-import type { AnalyzerLogger } from "@FeiyouG/skill-lab-analyzer";
+import { runAnalysis } from "@FeiyouG/skill-lab-analyzer";
+import type { AnalyzerConfig, AnalyzerLogger } from "@FeiyouG/skill-lab-analyzer";
 import { CLI_VERSION } from "../main.ts";
+import { loadAnalyzerConfig } from "../config/config.ts";
 
 type AnalyzeOptions = {
     gitRef?: string;
@@ -40,8 +42,6 @@ export const analyzeCommand = new Command()
                 );
             }
 
-            const { runAnalysis } = await import("@FeiyouG/skill-lab-analyzer");
-
             await configure({
                 reset: true,
                 sinks: {
@@ -71,6 +71,7 @@ export const analyzeCommand = new Command()
             const slabLogger = getLogger(["slab", "analyzer"]);
             const analyzerLogger = createAnalyzerLogger(slabLogger, options);
             const showProgressBar = resolveShowProgressBar(options);
+            const config = await loadAnalyzerConfig();
 
             const result = await runAnalysis({
                 options: {
@@ -79,9 +80,14 @@ export const analyzeCommand = new Command()
                     gitRef: options.gitRef,
                     githubToken: options.githubToken,
                 },
+                config: config as Partial<AnalyzerConfig>,
                 logger: analyzerLogger,
                 showProgressBar,
-            });
+            } as Parameters<typeof runAnalysis>[0]) as unknown as {
+                toSarif: (version: string) => Promise<string>;
+                toJson: () => string;
+                toString: () => string;
+            };
 
             if (options.sarif) {
                 console.log(await result.toSarif(CLI_VERSION));

@@ -19,8 +19,8 @@ The target is required. The CLI infers source type from the value.
 - `--gitRef <sha|branch|tag>`: Git reference for GitHub or local git repositories. If omitted for GitHub, the default branch is used.
 - `--subDir <path>`: optional path from repository root to the skill directory that contains `SKILL.md`
 - `--githubToken <token>`: GitHub token for GitHub sources. Overrides `GITHUB_TOKEN`; if neither is set, requests are unauthenticated.
-- `--json`: print full analyzer output as JSON (also implies `silence` flag)
-- `--sarif`: print results as SARIF 2.1.0 (also implies `silence` flag)
+- `--json`: print full analyzer output as JSON (also implies `--warn`)
+- `--sarif`: print results as SARIF 2.1.0 (also implies `--warn`)
 
 ### Logging
 

@@ -2,6 +2,7 @@ import { assertEquals } from "@std/assert";
 import { extractJsFileRefs } from "./extractFileRefs.ts";
 import { AstGrepClient } from "../../astgrep/client.ts";
 import { TreesitterClient } from "../../treesitter/client.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
 import type { AnalyzerContext } from "../../types.ts";
 
 function makeContext(): AnalyzerContext {
@@ -9,6 +10,7 @@ function makeContext(): AnalyzerContext {
         astgrepClient: new AstGrepClient(),
         treesitterClient: new TreesitterClient(),
         skillReader: null as unknown as AnalyzerContext["skillReader"],
+        config: DEFAULT_ANALYZER_CONFIG,
     };
 }
 

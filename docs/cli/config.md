@@ -1,4 +1,29 @@
-# Configuration
+# CLI Config
+
+## Analyzer config file
+
+The CLI reads an optional JSON config file named `config.json` to customize analysis.
+The format is documented in [Configurations](/guide/configurations).
+
+### Location resolution
+
+The config directory is resolved in this priority order:
+
+1. If **`$SKILL_LAB_CONFIG_DIR`** is set, 
+   source from `$SKILL_LAB_CONFIG_DIR/config.json`
+
+2. If **`$XDG_CONFIG_DIR`** is set, 
+   source from `$XDG_CONFIG_DIR/skill-lab/config.json`.
+
+3. Otherwise, `slab` will try to fetch config.json from
+   - Linux / macOS: `~/.config/skill-lab`
+   - Windows: `%APPDATA%\skill-lab` (or `%LOCALAPPDATA%\skill-lab`)
+
+4. If no config files found, use default config.
+
+For how to write configuration files, 
+please refere to [configuration guide](/guide/configurations)
+
 
 ## Grammar cache
 
@@ -17,11 +42,11 @@ The cache directory is resolved in this priority order:
    - Linux / macOS: `~/.cache/skill-lab`
    - Windows: `%LOCALAPPDATA%\skill-lab\Cache`
 
-Grammar files are stored under `<cache-dir>/grammars/`, for example:
+Grammar files are stored under `<cache-dir>/treesitter/grammars/`, for example:
 
 ```
-~/.cache/skill-lab/grammars/tree-sitter-bash.wasm
-~/.cache/skill-lab/grammars/tree-sitter-typescript.wasm
+~/.cache/skill-lab/treesitter/grammars/bash.wasm
+~/.cache/skill-lab/treesitter/grammars/typescript.wasm
 ```
 
 ### Environment variables
