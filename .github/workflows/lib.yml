@@ -144,7 +144,9 @@ jobs:
         permissions:
             contents: read
             id-token: write
-        environment: production
+        environment: 
+            name: production
+            url: https://www.npmjs.com/package/@feiyoug/skill-lab
         steps:
             - uses: actions/checkout@v4
 

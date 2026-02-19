@@ -112,13 +112,16 @@ jobs:
               run: deno task setup
 
             - name: Build binary
-              run: deno compile --no-check --allow-net --allow-read --allow-write --allow-env --allow-run=git --include=vendor/ast-grep-wasm --target x86_64-unknown-linux-gnu --output slab-ci-linux-x64 packages/cli/src/main.ts
+              env:
+                  SLAB_TARGET: x86_64-unknown-linux-gnu
+                  SLAB_OUTPUT: slab-ci-linux-x64
+              run: deno task cli:build
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
               with:
                   name: slab-ci-linux-x64
-                  path: slab-ci-linux-x64
+                  path: packages/cli/slab-ci-linux-x64
 
     build-nightly:
         name: Build Nightly Archives (${{ matrix.target }})
@@ -181,16 +184,19 @@ jobs:
               run: deno task setup
 
             - name: Build binary
-              run: deno compile --no-check --allow-net --allow-read --allow-write --allow-env --allow-run=git --include=vendor/ast-grep-wasm --target ${{ matrix.target }} --output ${{ matrix.binary }} packages/cli/src/main.ts
+              env:
+                  SLAB_TARGET: ${{ matrix.target }}
+                  SLAB_OUTPUT: ${{ matrix.binary }}
+              run: deno task cli:build
 
             - name: Package archive (Unix)
               if: runner.os != 'Windows'
-              run: tar -czf ${{ matrix.archive }} ${{ matrix.binary }}
+              run: tar -czf ${{ matrix.archive }} packages/cli/${{ matrix.binary }}
 
             - name: Package archive (Windows)
               if: runner.os == 'Windows'
               shell: pwsh
-              run: Compress-Archive -Path ${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
+              run: Compress-Archive -Path packages/cli/${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
 
             - name: Upload nightly archive artifact
               uses: actions/upload-artifact@v4
@@ -298,16 +304,19 @@ jobs:
               run: deno task setup
 
             - name: Build binary
-              run: deno compile --no-check --allow-net --allow-read --allow-write --allow-env --allow-run=git --include=vendor/ast-grep-wasm --target ${{ matrix.target }} --output ${{ matrix.binary }} packages/cli/src/main.ts
+              env:
+                  SLAB_TARGET: ${{ matrix.target }}
+                  SLAB_OUTPUT: ${{ matrix.binary }}
+              run: deno task cli:build
 
             - name: Package archive (Unix)
               if: runner.os != 'Windows'
-              run: tar -czf ${{ matrix.archive }} ${{ matrix.binary }}
+              run: tar -czf ${{ matrix.archive }} packages/cli/${{ matrix.binary }}
 
             - name: Package archive (Windows)
               if: runner.os == 'Windows'
               shell: pwsh
-              run: Compress-Archive -Path ${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
+              run: Compress-Archive -Path packages/cli/${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
