@@ -123,7 +123,12 @@ jobs:
               run: deno task setup
 
             - name: Build npm output
-              run: deno task npm:build
+              run: |
+                  if [[ "${{ github.event_name }}" == "release" ]]; then
+                    deno task npm:build "${{ github.event.release.tag_name }}"
+                  else
+                    deno task npm:build
+                  fi
 
             - name: Pack npm tarball
               run: npm pack ./npm
@@ -144,16 +149,10 @@ jobs:
         permissions:
             contents: read
             id-token: write
-        environment: 
+        environment:
             name: production
             url: https://www.npmjs.com/package/@feiyoug/skill-lab
         steps:
-            - uses: actions/checkout@v4
-
-            - uses: denoland/setup-deno@v2
-              with:
-                  deno-version: v2.x
-
             - uses: actions/setup-node@v4
               with:
                   node-version: 24
@@ -164,16 +163,11 @@ jobs:
                   node -v
                   npm -v
 
-            - name: Cache Deno dependencies
-              uses: actions/cache@v4
+            - name: Download npm artifacts from build job
+              uses: actions/download-artifact@v4
               with:
-                  path: |
-                      ~/.cache/deno
-                      ~/.deno
-                  key: ${{ runner.os }}-deno-${{ hashFiles('**/deno.lock') }}
-
-            - name: Build npm output for release tag
-              run: deno task npm:build ${{ github.event.release.tag_name }}
+                  name: skill-lab-npm
+                  path: .
 
             - name: Publish to npm
               run: npm publish ./npm --access public --provenance

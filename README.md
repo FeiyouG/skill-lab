@@ -1,48 +1,58 @@
 # Skill Lab
 
-Skill Lab is a toolkit for deterministic analysis of AI agent skills.
+Skill Lab is a toolkit for analyzing and understanding AI agent skills.
 
-It helps teams inspect skill behavior before enablement by producing structured
+It helps to inspect skill behavior before enablement by producing deterministic
 permission and risk output.
+
+The project is still experimental. Feedback and PRs are welcome.
+
+## What it provides
+
+- Deterministic static analysis for skills from local paths or GitHub.
+- Structured `permissions` and `risks` output for review and automation.
+- Aggregate `score`, `riskLevel`, and `summary` for fast triage.
+
+📖 [Documentation](https://skill-lab.pages.dev/)
 
 ## Install the CLI (`slab`)
 
-#### Homebrew
+### Homebrew
 
 ```bash
 brew tap feiyoug/tap/slab
 ```
 
-or
+Or:
 
 ```bash
 brew tap feiyoug/tap
 brew install slab
 ```
 
-#### Verify installation:
+Verify installation:
 
 ```bash
 slab --help
 ```
 
-For other install options, please see our [docs](https://skill-lab.pages.dev/cli/installation).
+For other install options, see [CLI Installation](https://skill-lab.pages.dev/cli/installation).
 
 ## Install the library
 
-#### npm
+### npm
 
 ```bash
 npm install @FeiyouG/skill-lab
 ```
 
-#### pnpm
+### pnpm
 
 ```bash
 pnpm add @FeiyouG/skill-lab
 ```
 
-#### Deno
+### Deno
 
 ```bash
 deno add npm:@FeiyouG/skill-lab
@@ -60,15 +70,4 @@ import { Analyzer } from "@FeiyouG/skill-lab";
 slab analyze ./path/to/skill --json
 ```
 
-## Documentation
-
-- Docs site: `https://skill-lab.pages.dev`
-
-## Repository layout
-
-- `packages/skillreader` - skill repository readers
-- `packages/analyzer` - deterministic analysis pipeline
-- `packages/shared` - shared domain and API types
-- `packages/cli` - `slab` command-line interface
-
-For contributor workflows, see `CONTRIBUTING.md`.
+The target directory should contain `SKILL.md` at its root.

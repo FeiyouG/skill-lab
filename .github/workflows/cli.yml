@@ -191,12 +191,13 @@ jobs:
 
             - name: Package archive (Unix)
               if: runner.os != 'Windows'
-              run: tar -czf ${{ matrix.archive }} packages/cli/${{ matrix.binary }}
+              run: tar -czf ${{ matrix.archive }} -C packages/cli ${{ matrix.binary }}
 
             - name: Package archive (Windows)
               if: runner.os == 'Windows'
               shell: pwsh
-              run: Compress-Archive -Path packages/cli/${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
+              working-directory: packages/cli
+              run: Compress-Archive -Path ${{ matrix.binary }} -DestinationPath ../../${{ matrix.archive }} -Force
 
             - name: Upload nightly archive artifact
               uses: actions/upload-artifact@v4
@@ -311,12 +312,13 @@ jobs:
 
             - name: Package archive (Unix)
               if: runner.os != 'Windows'
-              run: tar -czf ${{ matrix.archive }} packages/cli/${{ matrix.binary }}
+              run: tar -czf ${{ matrix.archive }} -C packages/cli ${{ matrix.binary }}
 
             - name: Package archive (Windows)
               if: runner.os == 'Windows'
               shell: pwsh
-              run: Compress-Archive -Path packages/cli/${{ matrix.binary }} -DestinationPath ${{ matrix.archive }} -Force
+              working-directory: packages/cli
+              run: Compress-Archive -Path ${{ matrix.binary }} -DestinationPath ../../${{ matrix.archive }} -Force
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
