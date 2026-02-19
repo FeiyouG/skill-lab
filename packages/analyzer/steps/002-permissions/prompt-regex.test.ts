@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import type { SkillFile, SkillManifest } from "@FeiyouG/skill-lab";
 import { AstGrepClient } from "../../astgrep/client.ts";
 import { TreesitterClient } from "../../treesitter/client.ts";
-import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config/mod.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { run002Permissions } from "./mod.ts";
 

@@ -1,7 +1,7 @@
 import ProgressBar from "@deno-library/progress";
 import { SkillAnalyzerResult } from "../../result.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
-import { DEFAULT_ANALYZER_CONFIG, resolveConfig } from "../../config.ts";
+import { DEFAULT_ANALYZER_CONFIG, resolveConfig } from "../../config/mod.ts";
 import { analyzeDependencyRisks } from "./dep-risks.ts";
 import { analyzeRuleMappedRisks } from "./rule-mapped.ts";
 
@@ -14,6 +14,7 @@ export async function run003Risks(
     context?: Pick<AnalyzerContext, "showProgressBar" | "config">,
 ): Promise<SkillAnalyzerResult> {
     let next = state;
+    const resolvedConfig = context?.config ?? resolveConfig(DEFAULT_ANALYZER_CONFIG);
 
     const shouldRenderProgress = (context?.showProgressBar ?? false) && Deno.stderr.isTerminal();
     const riskBar = shouldRenderProgress
@@ -31,9 +32,7 @@ export async function run003Risks(
             await riskBar.render(processed);
         }
 
-        const resolvedContext = {
-            config: context?.config ?? resolveConfig(DEFAULT_ANALYZER_CONFIG),
-        };
+        const resolvedContext = { config: resolvedConfig };
         next = analyzeDependencyRisks(next, resolvedContext);
         next = analyzeRuleMappedRisks(next, resolvedContext, () => {
             processed += 1;
@@ -51,7 +50,7 @@ export async function run003Risks(
     }
 
     next = addRemoteScriptWarningIfNeeded(next);
-    return new SkillAnalyzerResult(dedupeRisks(next));
+    return new SkillAnalyzerResult(dedupeRisks(next), resolvedConfig);
 }
 
 function addRemoteScriptWarningIfNeeded(state: AnalyzerState): AnalyzerState {
