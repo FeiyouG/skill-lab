@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import type { AnalyzerContext } from "../../types.ts";
 import { AstGrepClient } from "../../astgrep/client.ts";
 import { TreesitterClient } from "../../treesitter/client.ts";
-import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config/mod.ts";
 import { extractCodeBlocks } from "./extractCodeBlocks.ts";
 
 function makeContext(): AnalyzerContext {

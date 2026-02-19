@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config/mod.ts";
 import type { AnalyzerState } from "../../types.ts";
 import { run003Risks } from "./mod.ts";
 
@@ -74,6 +74,38 @@ Deno.test("run003Risks skips allowlisted dep import risk", async () => {
             allowlist: { languages: { python: { imports: ["requests"] } } },
         },
     });
+
+    assertEquals(result.risks.length, 0);
+});
+
+Deno.test("run003Risks skips dependency risks for default builtin imports", async () => {
+    const state = createInitialState();
+    state.permissions.push(
+        {
+            id: "dep-import-python-os",
+            tool: "python",
+            scope: "dep",
+            permission: "import",
+            args: ["os"],
+            metadata: { language: "python", discoveryMethod: "import" },
+            references: [{ file: "SKILL.md", line: 10, type: "script" }],
+            source: "inferred",
+            risks: [],
+        },
+        {
+            id: "dep-import-typescript-fs",
+            tool: "typescript",
+            scope: "dep",
+            permission: "import",
+            args: ["fs"],
+            metadata: { language: "typescript", discoveryMethod: "import" },
+            references: [{ file: "SKILL.md", line: 20, type: "script" }],
+            source: "inferred",
+            risks: [],
+        },
+    );
+
+    const result = await run003Risks(state, { config: DEFAULT_ANALYZER_CONFIG });
 
     assertEquals(result.risks.length, 0);
 });

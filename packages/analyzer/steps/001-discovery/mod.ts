@@ -3,7 +3,7 @@ import {
     DEFAULT_ANALYZER_CONFIG,
     DEFAULT_SKILL_VERSION,
     FRONTMATTER_SUPPORTED_FIELDS,
-} from "../../config.ts";
+} from "../../config/mod.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { discoverReferencedFiles } from "./discover-files.ts";
 import { filterScanQueue } from "./filter-files.ts";

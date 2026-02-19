@@ -1,6 +1,6 @@
 import type { Permission, Reference } from "skill-lab/shared";
 
-import { ALLOWED_TOOLS_MAPPING } from "../../config.ts";
+import { ALLOWED_TOOLS_MAPPING } from "../../config/mod.ts";
 import type { AnalyzerState } from "../../types.ts";
 import { generatePermissionId } from "../../utils/id-generator.ts";
 

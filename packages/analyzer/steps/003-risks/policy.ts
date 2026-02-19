@@ -1,5 +1,5 @@
 import type { TreesitterGrammar } from "../../treesitter/registry.ts";
-import type { AnalyzerConfig } from "../../config.ts";
+import type { AnalyzerConfig } from "../../config/mod.ts";
 
 function normalizeEntry(value: string): string {
     return value.trim().toLowerCase();

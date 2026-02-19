@@ -1,5 +1,7 @@
 import type { Permission, Risk } from "skill-lab/shared";
 import { scoreState } from "./steps/003-risks/scoring.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "./config/mod.ts";
+import type { AnalyzerConfig } from "./config/mod.ts";
 import type { AnalyzerState, ScanConfig } from "./types.ts";
 
 const INDENT = "  ";
@@ -69,7 +71,10 @@ export class SkillAnalyzerResult {
     private _riskLevel: "safe" | "caution" | "attention" | "risky" | "avoid" | undefined;
     private _summary: string | undefined;
 
-    constructor(private readonly state: AnalyzerState) {
+    constructor(
+        private readonly state: AnalyzerState,
+        private readonly config: AnalyzerConfig = DEFAULT_ANALYZER_CONFIG,
+    ) {
         this.analyzedAt = new Date().toISOString();
     }
 
@@ -117,7 +122,7 @@ export class SkillAnalyzerResult {
 
     private _ensureScored() {
         if (this._score === undefined) {
-            const scored = scoreState(this.state);
+            const scored = scoreState(this.state, this.config);
             this._score = scored.score;
             this._riskLevel = scored.riskLevel;
             this._summary = scored.summary;

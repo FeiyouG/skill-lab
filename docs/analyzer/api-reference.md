@@ -57,6 +57,17 @@ export type AnalyzerConfig = {
         languages?: Record<string, { imports?: string[] }>;
         network?: { domains?: string[] };
     };
+    riskReport?: {
+        baseScore?: { info?: number; warning?: number; critical?: number };
+        uplift?: Record<string, number>;
+        thresholds?: {
+            safe?: number;
+            caution?: number;
+            attention?: number;
+            risky?: number;
+            avoid?: number;
+        };
+    };
 };
 ```
 
@@ -88,6 +99,9 @@ severity and using `groupKey` when present.
 
 For the full config schema and merge behavior, see
 [Configurations](/guide/configurations).
+
+For the full list of analyzer risk types, see
+[Risk Codes](/analyzer/risk-codes).
 
 Other exported helpers include `createInitialState`, `DEFAULT_ANALYZER_CONFIG`,
 and `DEFAULT_SKILL_VERSION`.

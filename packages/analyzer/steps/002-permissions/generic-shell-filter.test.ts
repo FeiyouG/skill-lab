@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { AstGrepClient } from "../../astgrep/client.ts";
-import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config/mod.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { scanFileForPermissions } from "./scan-file.ts";
 

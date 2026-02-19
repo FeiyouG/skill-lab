@@ -12,7 +12,7 @@ import type {
 } from "skill-lab/shared";
 import { AstGrepClient } from "./astgrep/client.ts";
 import { TreesitterClient } from "./treesitter/client.ts";
-import type { AnalyzerConfig, ScanConfig } from "./config.ts";
+import type { AnalyzerConfig, ScanConfig } from "./config/mod.ts";
 export type { AnalyzerConfig, ScanConfig };
 
 export type AnalyzerLogger = {

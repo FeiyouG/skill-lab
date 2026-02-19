@@ -1,16 +1,53 @@
-import { SCORING } from "../../config.ts";
+import { DEFAULT_ANALYZER_CONFIG, resolveConfig } from "../../config/mod.ts";
+import type { AnalyzerConfig } from "../../config/mod.ts";
 import type { AnalyzerState } from "../../types.ts";
+
+type RiskLevel = "safe" | "caution" | "attention" | "risky" | "avoid";
+const SEVERITY_ORDER = { critical: 0, warning: 1, info: 2 } as const;
 
 export function scoreState(state: AnalyzerState): {
     score: number;
-    riskLevel: "safe" | "caution" | "attention" | "risky" | "avoid";
+    riskLevel: RiskLevel;
+    summary: string;
+};
+export function scoreState(
+    state: AnalyzerState,
+    config: AnalyzerConfig,
+): {
+    score: number;
+    riskLevel: RiskLevel;
+    summary: string;
+};
+export function scoreState(
+    state: AnalyzerState,
+    config?: AnalyzerConfig,
+): {
+    score: number;
+    riskLevel: RiskLevel;
     summary: string;
 } {
+    const resolvedConfig = resolveConfig(config ?? DEFAULT_ANALYZER_CONFIG);
+    const baseScore = {
+        info: 0,
+        warning: 1,
+        critical: 5,
+        ...(resolvedConfig.riskReport?.baseScore ?? {}),
+    };
+    const upliftConfig = resolvedConfig.riskReport?.uplift ?? {};
+    const thresholds = {
+        safe: 0,
+        caution: 1,
+        attention: 3,
+        risky: 5,
+        avoid: 7,
+        ...(resolvedConfig.riskReport?.thresholds ?? {}),
+    };
+
     const groupedSeverity = new Map<string, number>();
     const ungroupedSeverity: number[] = [];
 
     for (const risk of state.risks) {
-        const score = SCORING.severity[risk.severity];
+        const score = baseScore[risk.severity] ?? 0;
         if (risk.groupKey) {
             groupedSeverity.set(
                 risk.groupKey,
@@ -23,72 +60,58 @@ export function scoreState(state: AnalyzerState): {
 
     const severityScore = Math.max(0, ...ungroupedSeverity, ...groupedSeverity.values());
 
-    const permissionScore = Math.max(
+    const riskTypes = new Set(state.risks.map((risk) => risk.type));
+    const upliftScore = Array.from(riskTypes).reduce(
+        (sum, riskType) => sum + (upliftConfig[riskType] ?? 0),
         0,
-        ...state.permissions.map((perm) => {
-            const base = SCORING.permissions[`${perm.scope}:${perm.permission}`] ?? 0;
-            const wildcard = perm.args?.includes("*") ? SCORING.scopeWildcard : 0;
-            return base + wildcard;
-        }),
     );
 
-    let uplift = 0;
-
-    const hasExternalPost = state.risks.some((risk) =>
-        risk.type === "NETWORK:data_exfiltration" &&
-        ["POST", "PUT", "PATCH"].includes(String(risk.metadata?.method ?? "GET").toUpperCase())
-    );
-    if (hasExternalPost) uplift += SCORING.uplift.externalPost;
-
-    const hasPipeToShell = state.risks.some((risk) =>
-        risk.type === "NETWORK:remote_code_execution"
-    );
-    if (hasPipeToShell) uplift += SCORING.uplift.pipeToShell;
-
-    const criticalCount = state.risks.filter((risk) => risk.severity === "critical").length;
-    if (criticalCount >= 3) uplift += SCORING.uplift.multipleCritical;
-
-    const hasSecretTransfer = state.risks.some((risk) =>
-        risk.type === "NETWORK:credential_leak" ||
-        risk.type === "NETWORK:localhost_secret_exposure"
-    );
-    if (hasSecretTransfer) uplift += SCORING.uplift.secretsInRequest;
-
-    const score = severityScore + permissionScore + uplift;
-    const riskLevel = toRiskLevel(score);
+    const score = severityScore + upliftScore;
+    const riskLevel = toRiskLevel(score, thresholds);
     const summary = buildSummary(state, riskLevel);
 
     return { score, riskLevel, summary };
 }
 
-function toRiskLevel(score: number): "safe" | "caution" | "attention" | "risky" | "avoid" {
-    if (score <= 0) return "safe";
-    if (score <= 2) return "caution";
-    if (score <= 4) return "attention";
-    if (score <= 6) return "risky";
-    return "avoid";
+function toRiskLevel(
+    score: number,
+    thresholds: { safe: number; caution: number; attention: number; risky: number; avoid: number },
+): RiskLevel {
+    if (score >= thresholds.avoid) return "avoid";
+    if (score >= thresholds.risky) return "risky";
+    if (score >= thresholds.attention) return "attention";
+    if (score >= thresholds.caution) return "caution";
+    return "safe";
 }
 
 function buildSummary(
     state: AnalyzerState,
-    riskLevel: "safe" | "caution" | "attention" | "risky" | "avoid",
+    riskLevel: RiskLevel,
 ): string {
-    const topRisk = state.risks[0]?.type ?? "no major risks";
-    const topPermission = state.permissions[0]
-        ? `${state.permissions[0].scope}:${state.permissions[0].permission}`
-        : "no permissions";
+    if (state.risks.length === 0) return "No significant risk signals detected.";
+
+    const sorted = [...state.risks].sort(
+        (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity],
+    );
+    const topSeverity = sorted[0].severity;
+    const topTypes = [
+        ...new Set(
+            sorted.filter((risk) => risk.severity === topSeverity).map((risk) => risk.type),
+        ),
+    ].slice(0, 3);
+    const typeList = topTypes.join(", ");
 
     if (riskLevel === "avoid") {
-        return `Critical risks detected (${topRisk}) with elevated capability (${topPermission}).`;
+        return `Severe risks detected: ${typeList}.`;
     }
     if (riskLevel === "risky") {
-        return `Elevated risk profile (${topRisk}) and broad access (${topPermission}).`;
+        return `Elevated risk: ${typeList}.`;
     }
     if (riskLevel === "attention") {
-        return `Moderate risk signal (${topRisk}) from detected capabilities.`;
+        return `Moderate risk: ${typeList}.`;
     }
     if (riskLevel === "caution") {
-        return `Low-risk profile with limited permissions (${topPermission}).`;
+        return `Low-risk signals: ${typeList}.`;
     }
     return "No significant risk signals detected.";
 }

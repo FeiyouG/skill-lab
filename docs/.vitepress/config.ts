@@ -37,7 +37,7 @@ export default defineConfig({
                                 { text: "Quickstart", link: "/analyzer/quickstart" },
                                 { text: "API Reference", link: "/analyzer/api-reference" },
                                 { text: "Risk Levels", link: "/analyzer/risk-levels" },
-                                { text: "Rules Overview", link: "/analyzer/rules-overview" },
+                                { text: "Risk Codes", link: "/analyzer/risk-codes" },
                             ],
                         },
                     ],
