@@ -6,5 +6,5 @@ vendor/
 .DS_Store
 .env
 npm/
-**/slab
+**/slab*
 **/*.tgz

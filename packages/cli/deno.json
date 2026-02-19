@@ -16,7 +16,7 @@
         "dev": "deno run --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-run=git src/main.ts",
         "build": "deno compile --no-check --allow-net --allow-read --allow-write --allow-ffi --allow-env --allow-run=git --include=../../vendor/ast-grep-wasm --output=slab src/main.ts",
         "test": "deno test --allow-all",
-        "install": "deno install --allow-net --allow-read --allow-write --allow-env --allow-run=git --name=slab src/main.ts",
+        "install": "deno install --allow-net --allow-read --allow-write --allow-env --allow-ffi --allow-run=git --name=slab src/main.ts",
         "check": "deno fmt --check && deno lint && deno check src/**/*.ts"
     }
 }

@@ -17,24 +17,17 @@ permission intent, and support policy decisions with repeatable output.
 - `packages/cli`: user-facing command interface (`slab`)
 - `packages/skillreader`: source access and repository normalization
 - `packages/analyzer`: deterministic permission and risk analysis pipeline
-- `packages/shared`: shared domain models and output types
 
 ## Analysis pipeline
 
 `@FeiyouG/skill-lab-analyzer` runs a staged pipeline:
 
-1. Discovery (`001`) - collect files, normalize structure, parse frontmatter.
-2. Permissions (`002`) - extract declared and inferred capability requests.
-3. Risks (`003`) - map findings to typed signals and compute score and `riskLevel`.
-
-## CLI integration
-
-The `slab analyze` command resolves a `SkillReader` implementation from:
-
-- local filesystem
-- GitHub repository with optional `--gitRef`
-
-Then it passes that reader into `runAnalysis()` and prints either JSON or a concise summary.
+1. **File Discovery**: parse frontmatter and metadata, 
+    collect and discovery referenced files,
+    and normalize structures.
+2. **Permission Detection**: extract declared and inferred capability requests.
+3. **Risk Analysis**: map findings to typed signals and compute risk severities 
+    and generate summaries.
 
 ## Why this structure matters
 

@@ -40,15 +40,27 @@ Pipe the output to a file:
 slab analyze ./path/to/skill --sarif > results.sarif
 ```
 
-To upload to GitHub Code Scanning via the GitHub CLI:
+To upload to GitHub Code Scanning:
 
 ```bash
 slab analyze ./path/to/skill --sarif > results.sarif
+
+# upload via the GitHub CLI:
 gh api repos/<owner>/<repo>/code-scanning/sarifs \
   --method POST \
   -f commit_sha=$(git rev-parse HEAD) \
   -f ref=$(git symbolic-ref HEAD) \
   -f sarif=$(gzip -c results.sarif | base64)
+
+# upload via Github Action:
+- name: Upload SARIF file
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    # Path to the SARIF file relative to the repository root
+    sarif_file: result.sarif
+    # Optional: Assign a category to distinguish results from different runs or tools
+    category: skill-lab
+
 ```
 
 ## Examples

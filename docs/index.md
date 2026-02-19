@@ -2,6 +2,8 @@
 
 Skill Lab is a toolkit for analyzing and understanding AI agent skills.
 
+## Why Skill Lab?
+
 As agent ecosystems become increasingly composable,
 skills can execute commands, access files, and call external services.
 Skill Lab provides a deterministic way to inspect and
@@ -9,7 +11,7 @@ evaluate those capabilities before enabling them.
 
 It offers the core building blocks for:
 
-- Reading and parsingskill repositories (local or remote)
+- Reading and parsing skill repositories (local or remote)
 - Extracting structured metadata
 - Identifying permission signals
 - Detecting potentially risky patterns

@@ -21,22 +21,24 @@ slab --help
 
 ## Download from Releases
 
-Download the archive for your platform from:
+Download the single binary for your platform from:
 
-- macOS ARM64: `slab-macos-arm64.tar.gz`
-- Linux x64: `slab-linux-x64.tar.gz`
-- Windows x64: `slab-windows-x64.zip`
+- macOS ARM64: `slab-macos-arm64`
+- Linux x64: `slab-linux-x64`
+- Windows x64: `slab-windows-x64.exe`
 
 Release page: `https://github.com/feiyoug/skill-lab/releases`
 
-Extract and install (macOS/Linux):
+Install (macOS/Linux):
 
 ```bash
-mkdir -p ~/.local/lib/slab
-tar -xzf slab-macos-arm64.tar.gz -C ~/.local/lib/slab
 mkdir -p ~/.local/bin
-ln -sf ~/.local/lib/slab/slab ~/.local/bin/slab
+mv slab-macos-arm64 ~/.local/bin/slab
+chmod +x ~/.local/bin/slab
 ```
+
+On Windows, rename `slab-windows-x64.exe` to `slab.exe` (optional) and place it
+in a directory on your `PATH`.
 
 Verify installation:
 
@@ -44,19 +46,20 @@ Verify installation:
 slab --help
 ```
 
-On macOS, if Gatekeeper blocks `slab-bin` or `*-parser.so`, run once:
+On macOS, if Gatekeeper blocks the binary, run once:
 
 ```bash
-xattr -dr com.apple.quarantine ~/.local/lib/slab
+xattr -dr com.apple.quarantine ~/.local/bin/slab
 ```
-
-For details about the runtime layout, see [development notes](/development/astgrep)
 
 ## Install from source (Deno)
 
 ```bash
 git clone https://github.com/feiyoug/skill-lab.git
 cd skill-lab
+
+# Ensure rust and deno are installed, then run
+deno task setup
 deno task cli:install
 ```
 
@@ -69,5 +72,8 @@ slab --help
 ## Build executable from source
 
 ```bash
+
+# Ensure rust and deno are installed, then run
+deno task setup
 deno task cli:build
 ```

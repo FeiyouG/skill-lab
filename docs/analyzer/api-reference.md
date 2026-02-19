@@ -72,10 +72,14 @@ serialized in multiple formats:
 - `toJson()`
 - `toSarif(toolVersion)`
 
+`toString()` renders grouped terminal output, sorting risk groups by highest
+severity and using `groupKey` when present.
+
 `SkillAnalyzerResult` includes:
 
 - `permissions: Permission[]`
 - `risks: Risk[]`
+- `Risk` includes optional `groupKey?: string` for output/scoring grouping
 - `score: number`
 - `riskLevel: "safe" | "caution" | "attention" | "risky" | "avoid"`
 - `summary: string`

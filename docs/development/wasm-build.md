@@ -91,7 +91,7 @@ files per language into each release archive (~5 MB per language). With WASM, a 
 file serves all platforms, and grammars are downloaded on first use rather than bundled
 into the release archive.
 
-Grammar files are cached locally in the [XDG cache directory](../cli/configuration.md).
+Grammar files are cached locally in the [XDG cache directory](/cli/config).
 
 ---
 

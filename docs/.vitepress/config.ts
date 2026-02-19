@@ -10,7 +10,6 @@ export default defineConfig({
                 {
                     items: [
                         { text: "Getting Started", link: "/guide/getting-started" },
-                        { text: "Architecture", link: "/guide/architecture" },
                         { text: "Configurations", link: "/guide/configurations" },
                     ],
                 },
@@ -51,7 +50,8 @@ export default defineConfig({
                     text: "Development",
                     collapsed: true,
                     items: [
-                        { text: "wasm build", link: "/development/wasm-build.md" },
+                        { text: "Architecture", link: "/development/architecture" },
+                        { text: "wasm build", link: "/development/wasm-build" },
                     ],
                 },
             ],
