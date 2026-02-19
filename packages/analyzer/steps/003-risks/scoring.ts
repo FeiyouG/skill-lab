@@ -27,18 +27,20 @@ export function scoreState(
     summary: string;
 } {
     const resolvedConfig = resolveConfig(config ?? DEFAULT_ANALYZER_CONFIG);
-    const baseScore = resolvedConfig.riskReport?.baseScore ?? {
+    const baseScore = {
         info: 0,
         warning: 1,
         critical: 5,
+        ...(resolvedConfig.riskReport?.baseScore ?? {}),
     };
     const upliftConfig = resolvedConfig.riskReport?.uplift ?? {};
-    const thresholds = resolvedConfig.riskReport?.thresholds ?? {
+    const thresholds = {
         safe: 0,
         caution: 1,
         attention: 3,
         risky: 5,
         avoid: 7,
+        ...(resolvedConfig.riskReport?.thresholds ?? {}),
     };
 
     const groupedSeverity = new Map<string, number>();
@@ -92,9 +94,11 @@ function buildSummary(
         (a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity],
     );
     const topSeverity = sorted[0].severity;
-    const topTypes = [...new Set(
-        sorted.filter((risk) => risk.severity === topSeverity).map((risk) => risk.type),
-    )].slice(0, 3);
+    const topTypes = [
+        ...new Set(
+            sorted.filter((risk) => risk.severity === topSeverity).map((risk) => risk.type),
+        ),
+    ].slice(0, 3);
     const typeList = topTypes.join(", ");
 
     if (riskLevel === "avoid") {

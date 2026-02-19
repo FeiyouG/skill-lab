@@ -1,11 +1,12 @@
 import type { TreesitterGrammar } from "../treesitter/registry.ts";
 import { DEFAULT_ANALYZER_CONFIG } from "./default.ts";
-import type {
-    Allowlist,
-    AnalyzerConfig,
-    LanguagePolicy,
-    NetworkPolicy,
-} from "./types.ts";
+import type { Allowlist, AnalyzerConfig, LanguagePolicy, NetworkPolicy } from "./types.ts";
+
+type DeepPartial<T> = {
+    [K in keyof T]?: T[K] extends Array<infer U> ? Array<U>
+        : T[K] extends Record<string, unknown> ? DeepPartial<T[K]>
+        : T[K];
+};
 
 export function resolveConfig(partial?: Partial<AnalyzerConfig>): AnalyzerConfig {
     const defaultScan = DEFAULT_ANALYZER_CONFIG.scan ?? {};
@@ -23,7 +24,7 @@ export function resolveConfig(partial?: Partial<AnalyzerConfig>): AnalyzerConfig
 
 export function deepMergeJson<T extends Record<string, unknown>>(
     base: T,
-    override: Partial<T>,
+    override: DeepPartial<T>,
 ): T {
     const result: Record<string, unknown> = { ...base };
 
@@ -53,7 +54,10 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     return Object.getPrototypeOf(value) === Object.prototype;
 }
 
-function mergeAllowlist(base: Allowlist | undefined, override: Allowlist | undefined): Allowlist | undefined {
+function mergeAllowlist(
+    base: Allowlist | undefined,
+    override: Allowlist | undefined,
+): Allowlist | undefined {
     if (!base && !override) return undefined;
 
     const languages = mergeLanguagePolicies(base?.languages, override?.languages);
@@ -93,7 +97,10 @@ function mergeNetworkPolicy(
     return domains ? { domains } : undefined;
 }
 
-function mergeStringList(base: string[] | undefined, override: string[] | undefined): string[] | undefined {
+function mergeStringList(
+    base: string[] | undefined,
+    override: string[] | undefined,
+): string[] | undefined {
     if (!base && !override) return undefined;
     const values = new Set<string>([...(base ?? []), ...(override ?? [])]);
     return values.size > 0 ? [...values] : undefined;

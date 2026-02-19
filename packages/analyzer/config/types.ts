@@ -52,7 +52,7 @@ export type RiskReportConfig = {
         critical?: number;
     };
     uplift?: RiskUpliftConfig;
-    thresholds?: RiskThresholdConfig;
+    thresholds?: Partial<RiskThresholdConfig>;
 };
 
 export const ALLOWED_TOOLS_MAPPING: Record<

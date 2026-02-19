@@ -9,7 +9,14 @@ import { TreesitterClient } from "./treesitter/client.ts";
 import { AstGrepClient } from "./astgrep/mod.ts";
 
 export type { AnalyzerConfig, AnalyzerLogger, AnalyzerState } from "./types.ts";
-export type { Allowlist, Denylist, LanguagePolicy, NetworkPolicy, ScanConfig } from "./config/mod.ts";
+export type {
+    Allowlist,
+    Denylist,
+    LanguagePolicy,
+    NetworkPolicy,
+    RiskReportConfig,
+    ScanConfig,
+} from "./config/mod.ts";
 
 export { SkillAnalyzerResult } from "./result.ts";
 export { DEFAULT_ANALYZER_CONFIG, DEFAULT_SKILL_VERSION, resolveConfig } from "./config/mod.ts";
