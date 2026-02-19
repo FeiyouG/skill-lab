@@ -39,8 +39,8 @@ export type SkillZipManifest = {
 export type SkillManifest = SkillFileManifest | SkillZipManifest;
 
 export type SkillFrontmatter = {
-    startLineNumer?: number;
-    endLineNumer?: number;
+    startLineNumber?: number;
+    endLineNumber?: number;
 
     name: string;
     description: string;
@@ -131,8 +131,8 @@ export abstract class SkillReader {
             throw new Error("Invalid skill repository: frontmatter requires name and description");
         }
 
-        parsed.startLineNumer = frontmatter.startLine;
-        parsed.endLineNumer = frontmatter.endLine;
+        parsed.startLineNumber = frontmatter.startLine;
+        parsed.endLineNumber = frontmatter.endLine;
 
         this.skillFrontMatter = parsed;
         return this.skillFrontMatter;

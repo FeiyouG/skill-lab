@@ -11,12 +11,15 @@ import type {
     Risk,
 } from "skill-lab/shared";
 import { AstGrepClient } from "./astgrep/client.ts";
-import { TreesitterClient } from "./treesiter/client.ts";
+import { TreesitterClient } from "./treesitter/client.ts";
+import type { AnalyzerConfig, ScanConfig } from "./config.ts";
+export type { AnalyzerConfig, ScanConfig };
 
-export type AnalyzerConfig = {
-    maxFileSize: number;
-    maxFileCount: number;
-    maxScanDepth: number;
+export type AnalyzerLogger = {
+    debug: (template: string, props?: Record<string, unknown>) => void;
+    info: (template: string, props?: Record<string, unknown>) => void;
+    warn: (template: string, props?: Record<string, unknown>) => void;
+    error: (template: string, props?: Record<string, unknown>) => void;
 };
 
 export type AnalyzerState = {
@@ -30,29 +33,10 @@ export type AnalyzerState = {
     risks: Risk[];
     warnings: string[];
     metadata: {
-        scannedFiles: string[];
+        scannedFiles: Set<string>;
         skippedFiles: Array<{ path: string; reason: string; referenceBy?: Reference }>;
         rulesUsed: string[];
-        config: AnalyzerConfig;
-    };
-};
-
-export type AnalyzerResult = {
-    analyzedAt: string;
-    skillId: string;
-    skillVersionId: string;
-    permissions: Permission[];
-    risks: Risk[];
-    score: number;
-    riskLevel: "safe" | "caution" | "attention" | "risky" | "avoid";
-    summary: string;
-    warnings: string[];
-    metadata: {
-        scannedFiles: string[];
-        skippedFiles: Array<{ path: string; reason: string }>;
-        rulesUsed: string[];
-        frontmatterRangeEnd?: number;
-        config: AnalyzerConfig;
+        config: ScanConfig;
     };
 };
 
@@ -60,6 +44,10 @@ export type AnalyzerContext = {
     skillReader: SkillReader;
     treesitterClient: TreesitterClient;
     astgrepClient: AstGrepClient;
+    logger?: AnalyzerLogger;
+    showProgressBar?: boolean;
+    /** Resolved (defaults-merged) user config. */
+    config: AnalyzerConfig;
 };
 
 /** A file path or package reference discovered in source content. */

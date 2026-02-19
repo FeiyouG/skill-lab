@@ -1,19 +1,7 @@
 import { FILETYPE_BY_LANGUAGE } from "skill-lab/shared";
 import type { AnalyzerContext, CodeBlock } from "../../types.ts";
 import { MARKDOWN_INLINE_QUERY, MARKDOWN_NODE, MARKDOWN_QUERY } from "./astTypes.ts";
-import type Parser from "tree-sitter";
-
-type TsPoint = { row: number };
-type TsNode = {
-    type: string;
-    text: string;
-    startPosition: TsPoint;
-    endPosition: TsPoint;
-    children: TsNode[];
-};
-
-type TsCapture = { name: string; node: unknown };
-type TsMatch = { captures: TsCapture[] };
+import type { Node as TsNode } from "web-tree-sitter";
 
 /**
  * For markdown we use treesitter query directly
@@ -33,24 +21,25 @@ export async function extractCodeBlocks(
             MARKDOWN_QUERY.FENCED_BLOCK,
         );
 
-        for (const match of fencedBlockQuery.matches(blockTree.rootNode) as Parser.QueryMatch[]) {
+        for (const match of fencedBlockQuery.matches(blockTree.rootNode)) {
             for (const capture of match.captures) {
                 if (capture.name !== "block") continue;
-                const blockNode = capture.node;
+                const blockNode = capture.node as TsNode;
 
                 const startLine = blockNode.startPosition.row + 1;
                 const endLine = blockNode.endPosition.row + 1;
 
-                const languageNode = blockNode.children.find((child) =>
-                    child.type === MARKDOWN_NODE.CODE_FENCE_LANGUAGE ||
-                    child.type === MARKDOWN_NODE.INFO_STRING
+                const languageNode = blockNode.children.find((child: TsNode | null) =>
+                    child !== null &&
+                    (child.type === MARKDOWN_NODE.CODE_FENCE_LANGUAGE ||
+                        child.type === MARKDOWN_NODE.INFO_STRING)
                 );
                 const fenceLanguage = FILETYPE_BY_LANGUAGE[
                     (languageNode?.text ?? "").trim().toLowerCase()
                 ] ?? null;
 
-                const contentNode = blockNode.children.find((child) =>
-                    child.type === MARKDOWN_NODE.CODE_FENCE_CONTENT
+                const contentNode = blockNode.children.find((child: TsNode | null) =>
+                    child !== null && child.type === MARKDOWN_NODE.CODE_FENCE_CONTENT
                 );
                 const codeContent = (contentNode?.text ?? "")
                     .replace(/\n?[`~]{3,}[^\n]*\s*$/, "")
@@ -77,13 +66,15 @@ export async function extractCodeBlocks(
             MARKDOWN_INLINE_QUERY.CODE_SPAN,
         );
 
-        for (const inlineMatch of inlineNodeQuery.matches(blockTree.rootNode) as TsMatch[]) {
+        for (const inlineMatch of inlineNodeQuery.matches(blockTree.rootNode)) {
             for (const inlineCapture of inlineMatch.captures) {
                 if (inlineCapture.name !== "inline") continue;
                 const inlineNode = inlineCapture.node as TsNode;
 
                 const inlineTree = inlineParser.parse(inlineNode.text);
-                for (const codeMatch of codeSpanQuery.matches(inlineTree.rootNode) as TsMatch[]) {
+                if (!inlineTree) continue;
+
+                for (const codeMatch of codeSpanQuery.matches(inlineTree.rootNode)) {
                     for (const codeCapture of codeMatch.captures) {
                         if (codeCapture.name !== "code") continue;
                         const spanNode = codeCapture.node as TsNode;

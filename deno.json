@@ -51,6 +51,7 @@
         "docs:build": "deno task --cwd docs build",
         "docs:preview": "deno task --cwd docs preview",
         "npm:build": "deno run -A scripts/build_npm.ts",
+        "setup": "deno run -A scripts/setup_wasm.ts",
         "precommit": "deno fmt && deno task check && deno task test"
     },
     "imports": {

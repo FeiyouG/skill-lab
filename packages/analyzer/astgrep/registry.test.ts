@@ -1,54 +1,77 @@
 import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.0";
-import {
-    AST_GREP_LANGUAGE_SPECS,
-    buildBundledRegistrations,
-    buildDevRegistrations,
-} from "./registry.ts";
+import { ensureGrammar, getCacheDir, GRAMMAR_SPECS } from "../treesitter/registry.ts";
 
-Deno.test("buildDevRegistrations returns all configured grammars", () => {
-    const registrations = buildDevRegistrations();
-    assertEquals(
-        Object.keys(registrations).sort(),
-        Object.keys(AST_GREP_LANGUAGE_SPECS).sort(),
-    );
+Deno.test("GRAMMAR_SPECS contains expected languages", () => {
+    const langs = Object.keys(GRAMMAR_SPECS).sort();
+    assertEquals(langs, [
+        "bash",
+        "javascript",
+        "markdown",
+        "markdown-inline",
+        "python",
+        "tsx",
+        "typescript",
+    ]);
 });
 
-Deno.test("buildBundledRegistrations builds parser registrations from resource dir", async () => {
-    const dir = await Deno.makeTempDir();
-    try {
-        for (const spec of Object.values(AST_GREP_LANGUAGE_SPECS)) {
-            await Deno.writeFile(`${dir}/${spec.parserFileName}`, new Uint8Array([1]));
-        }
-
-        const registrations = buildBundledRegistrations(dir);
+Deno.test("GRAMMAR_SPECS each entry has filename and url", () => {
+    for (const [lang, spec] of Object.entries(GRAMMAR_SPECS)) {
+        assertEquals(typeof spec.filename, "string", `${lang}.filename should be a string`);
+        assertEquals(typeof spec.url, "string", `${lang}.url should be a string`);
         assertEquals(
-            Object.keys(registrations).sort(),
-            Object.keys(AST_GREP_LANGUAGE_SPECS).sort(),
+            spec.filename.endsWith(".wasm"),
+            true,
+            `${lang}.filename should end with .wasm`,
         );
-        assertEquals(registrations.bash.libraryPath.endsWith("/bash-parser.so"), true);
-    } finally {
-        await Deno.remove(dir, { recursive: true });
+        assertEquals(
+            spec.url.startsWith("https://github.com/"),
+            true,
+            `${lang}.url should be a GitHub URL`,
+        );
     }
 });
 
-Deno.test("buildBundledRegistrations throws when parser file is missing", async () => {
-    const dir = await Deno.makeTempDir();
+Deno.test("getCacheDir respects SKILL_LAB_CACHE_DIR override", () => {
+    const prev = Deno.env.get("SKILL_LAB_CACHE_DIR");
     try {
-        for (const [grammar, spec] of Object.entries(AST_GREP_LANGUAGE_SPECS)) {
-            if (grammar === "markdown") continue;
-            await Deno.writeFile(`${dir}/${spec.parserFileName}`, new Uint8Array([1]));
-        }
-
-        assertRejects(
-            () => {
-                return Promise.resolve().then(() => {
-                    buildBundledRegistrations(dir);
-                });
-            },
-            Error,
-            "Missing ast-grep parser",
-        );
+        Deno.env.set("SKILL_LAB_CACHE_DIR", "/custom/cache");
+        assertEquals(getCacheDir(), "/custom/cache");
     } finally {
-        await Deno.remove(dir, { recursive: true });
+        if (prev !== undefined) {
+            Deno.env.set("SKILL_LAB_CACHE_DIR", prev);
+        } else {
+            Deno.env.delete("SKILL_LAB_CACHE_DIR");
+        }
     }
+});
+
+Deno.test("getCacheDir respects XDG_CACHE_HOME", () => {
+    const prevSkill = Deno.env.get("SKILL_LAB_CACHE_DIR");
+    const prevXdg = Deno.env.get("XDG_CACHE_HOME");
+    try {
+        Deno.env.delete("SKILL_LAB_CACHE_DIR");
+        Deno.env.set("XDG_CACHE_HOME", "/xdg/cache");
+        const dir = getCacheDir();
+        assertEquals(dir.startsWith("/xdg/cache"), true);
+        assertEquals(dir.endsWith("skill-lab"), true);
+    } finally {
+        if (prevSkill !== undefined) {
+            Deno.env.set("SKILL_LAB_CACHE_DIR", prevSkill);
+        } else {
+            Deno.env.delete("SKILL_LAB_CACHE_DIR");
+        }
+        if (prevXdg !== undefined) {
+            Deno.env.set("XDG_CACHE_HOME", prevXdg);
+        } else {
+            Deno.env.delete("XDG_CACHE_HOME");
+        }
+    }
+});
+
+Deno.test("ensureGrammar throws for unknown language", async () => {
+    await assertRejects(
+        () => ensureGrammar("unknown-lang"),
+        Error,
+        "No grammar spec",
+    );
 });

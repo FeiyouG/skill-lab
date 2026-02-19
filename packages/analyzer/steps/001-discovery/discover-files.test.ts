@@ -2,7 +2,8 @@ import { assertEquals } from "@std/assert";
 import { discoverReferencedFiles } from "./discover-files.ts";
 import type { SkillFile } from "@FeiyouG/skill-lab";
 import { AstGrepClient } from "../../astgrep/client.ts";
-import { TreesitterClient } from "../../treesiter/client.ts";
+import { TreesitterClient } from "../../treesitter/client.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
 import type { AnalyzerContext } from "../../types.ts";
 
 // Minimal SkillFile for test use
@@ -15,6 +16,7 @@ function makeContext(): AnalyzerContext {
         astgrepClient: new AstGrepClient(),
         treesitterClient: new TreesitterClient(),
         skillReader: null as unknown as AnalyzerContext["skillReader"],
+        config: DEFAULT_ANALYZER_CONFIG,
     };
 }
 
@@ -180,7 +182,7 @@ scripts/package_skill.py <path/to/skill-folder>
 );
 
 Deno.test(
-    "discoverReferencedFiles - keeps unresolved imports as external library refs",
+    "discoverReferencedFiles - keeps unresolved imports as external import library refs",
     async () => {
         const content = `import requests\nfrom pathlib import Path\n`;
         const allFiles: SkillFile[] = [makeSkillFile("scripts/main.py")];
@@ -196,12 +198,14 @@ Deno.test(
         });
 
         const libraries = discovered.filter((item) =>
-            item.sourceType === "external" && item.role === "library"
+            item.sourceType === "external" && item.role === "library" &&
+            item.discoveryMethod === "import"
         );
         const paths = libraries.map((item) => item.path);
 
         assertEquals(paths.includes("requests"), true);
         assertEquals(paths.includes("pathlib"), true);
+        assertEquals(libraries.every((item) => item.fileType === "python"), true);
     },
 );
 
@@ -227,5 +231,7 @@ Deno.test(
         );
 
         assertEquals(Boolean(sourceLibrary), true);
+        assertEquals(sourceLibrary?.fileType, "bash");
+        assertEquals(sourceLibrary?.discoveryMethod, "source");
     },
 );

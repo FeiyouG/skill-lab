@@ -13,13 +13,13 @@ import { isHostFsPath, isUrl, looksLikePath } from "../shared/file-refs.ts";
 import type { AnalyzerContext, FileRefDiscovery } from "../../types.ts";
 import { BASH_NODE } from "./astTypes.ts";
 
-export function extractBashFileRefs(
+export async function extractBashFileRefs(
     context: AnalyzerContext,
     content: string,
-): FileRefDiscovery[] {
+): Promise<FileRefDiscovery[]> {
     const refs: FileRefDiscovery[] = [];
 
-    const ast = context.astgrepClient.parse("bash", content);
+    const ast = await context.astgrepClient.parse("bash", content);
     const root = ast.root();
 
     const commandNodes = root.findAll({ rule: { kind: BASH_NODE.COMMAND } });

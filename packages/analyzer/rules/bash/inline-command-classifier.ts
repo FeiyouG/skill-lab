@@ -42,17 +42,17 @@ const KNOWN_COMMAND_TOOLS = new Set(
         .filter((tool) => tool && tool !== "detected"),
 );
 
-export function isLikelyInlineBashCommand(
+export async function isLikelyInlineBashCommand(
     context: AnalyzerContext,
     input: { snippet: string; lineContext?: string },
-): boolean {
+): Promise<boolean> {
     const snippet = normalizeInlineSnippet(input.snippet);
     if (!snippet) return false;
     if (looksLikeFormattingToken(snippet)) return false;
     const tokens = snippet.split(/\s+/).filter(Boolean);
     if (tokens.length === 1 && looksLikePath(snippet)) return false;
 
-    if (matchesSpecificBashCommandRule(context, snippet)) return true;
+    if (await matchesSpecificBashCommandRule(context, snippet)) return true;
 
     const firstToken = tokens[0]?.toLowerCase() ?? "";
     const hasContextVerb = CONTEXT_VERB_PATTERN.test(input.lineContext ?? "");
@@ -70,8 +70,15 @@ export function isLikelyInlineBashCommand(
     return false;
 }
 
-function matchesSpecificBashCommandRule(context: AnalyzerContext, snippet: string): boolean {
-    const matches = context.astgrepClient.scanWithRules(snippet, "bash", SPECIFIC_COMMAND_RULES);
+async function matchesSpecificBashCommandRule(
+    context: AnalyzerContext,
+    snippet: string,
+): Promise<boolean> {
+    const matches = await context.astgrepClient.scanWithRules(
+        snippet,
+        "bash",
+        SPECIFIC_COMMAND_RULES,
+    );
     return matches.length > 0;
 }
 

@@ -10,7 +10,7 @@ export default defineConfig({
                 {
                     items: [
                         { text: "Getting Started", link: "/guide/getting-started" },
-                        { text: "Architecture", link: "/guide/architecture" },
+                        { text: "Configurations", link: "/guide/configurations" },
                     ],
                 },
                 {
@@ -18,6 +18,7 @@ export default defineConfig({
                     items: [
                         { text: "Overview", link: "/cli/overview" },
                         { text: "Installation", link: "/cli/installation" },
+                        { text: "config", link: "/cli/config" },
                         {
                             text: "Commands",
                             items: [
@@ -39,14 +40,6 @@ export default defineConfig({
                                 { text: "Rules Overview", link: "/analyzer/rules-overview" },
                             ],
                         },
-                        // {
-                        //     text: "SkillReader",
-                        //     items: [
-                        //         { text: "Overview", link: "/skillreader/overview" },
-                        //         { text: "Quickstart", link: "/skillreader/quickstart" },
-                        //         { text: "API Reference", link: "/skillreader/api-reference" },
-                        //     ],
-                        // },
                     ],
                 },
                 {
@@ -57,7 +50,8 @@ export default defineConfig({
                     text: "Development",
                     collapsed: true,
                     items: [
-                        { text: "@ast-grep/napi Runtime", link: "/development/astgrep.md" },
+                        { text: "Architecture", link: "/development/architecture" },
+                        { text: "wasm build", link: "/development/wasm-build" },
                     ],
                 },
             ],

@@ -1,6 +1,6 @@
 import { FileRole, Reference } from "./references.ts";
 
-export type PermissionScope = "fs" | "sys" | "net" | "env" | "hooks" | "data";
+export type PermissionScope = "fs" | "sys" | "net" | "env" | "hooks" | "data" | "dep";
 
 export type Permission = {
     id: string;

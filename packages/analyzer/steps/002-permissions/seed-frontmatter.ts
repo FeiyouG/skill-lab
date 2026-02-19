@@ -22,7 +22,7 @@ export function seedPermissionsFromFrontmatter(
     const baseRef: Reference = {
         file: skillMdPath,
         line: 1,
-        lineEnd: state.frontmatter.endLineNumer,
+        lineEnd: state.frontmatter.endLineNumber,
         type: "frontmatter",
     };
 

@@ -6,10 +6,22 @@ export function scoreState(state: AnalyzerState): {
     riskLevel: "safe" | "caution" | "attention" | "risky" | "avoid";
     summary: string;
 } {
-    const severityScore = Math.max(
-        0,
-        ...state.risks.map((risk) => SCORING.severity[risk.severity]),
-    );
+    const groupedSeverity = new Map<string, number>();
+    const ungroupedSeverity: number[] = [];
+
+    for (const risk of state.risks) {
+        const score = SCORING.severity[risk.severity];
+        if (risk.groupKey) {
+            groupedSeverity.set(
+                risk.groupKey,
+                Math.max(groupedSeverity.get(risk.groupKey) ?? 0, score),
+            );
+            continue;
+        }
+        ungroupedSeverity.push(score);
+    }
+
+    const severityScore = Math.max(0, ...ungroupedSeverity, ...groupedSeverity.values());
 
     const permissionScore = Math.max(
         0,

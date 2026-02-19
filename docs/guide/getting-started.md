@@ -14,16 +14,16 @@ slab analyze ./path/to/skill
 
 The target directory should contain `SKILL.md` at its root.
 
-## 3) Analyze a GitHub skill
+## 3) Analyze a skill hosted on Github
 
 ```bash
-slab analyze https://github.com/org/repo
+slab analyze https://github.com/username/repo
 ```
 
 For repositories with multiple skills, scope to one skill directory:
 
 ```bash
-slab analyze https://github.com/org/repo --subDir skills/my-skill
+slab analyze https://github.com/username/repo --subDir skills/my-skill
 ```
 
 ## 4) Read the result
@@ -41,8 +41,14 @@ Use JSON output when integrating with tooling:
 slab analyze ./path/to/skill --json
 ```
 
+
+Use sarif output when integrating with Github security scan:
+
+```bash
+slab analyze ./path/to/skill --sarif
+```
+
 ## Next steps
 
-- [Architecture](/guide/architecture)
 - [CLI Overview](/cli/overview)
-- [Analyzer Quickstart](/analyzer/quickstart)
+- [API Overview](/analyzer/quickstart)

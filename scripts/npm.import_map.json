@@ -1,6 +1,9 @@
 {
     "imports": {
         "@FeiyouG/skill-lab": "../packages/skillreader/mod.ts",
-        "skill-lab/shared": "../packages/shared/mod.ts"
+        "skill-lab/shared": "../packages/shared/mod.ts",
+        "@ast-grep/wasm": "../packages/.npm-build-vendor/ast-grep-wasm/mod.ts",
+        "@deno-library/progress": "jsr:@deno-library/progress@^1.5.1",
+        "@std/path": "jsr:@std/path@^1.0.0"
     }
 }

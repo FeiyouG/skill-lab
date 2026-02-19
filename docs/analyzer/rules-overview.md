@@ -9,5 +9,7 @@ Risk codes are grouped by category:
 - `PRIVILEGE:*` - privilege escalation indicators
 - `PERSISTENCE:*` - persistence mechanisms
 - `SECRETS:*` - secret access and handling concerns
+- `DEPENDENCY:*` - external import policy violations and unconfigured imports
+- `REFERENCE:*` - external file references discovered from source includes
 
 Rule definitions are language-aware and cover Bash, JavaScript, TypeScript, Python, Markdown, and text contexts.

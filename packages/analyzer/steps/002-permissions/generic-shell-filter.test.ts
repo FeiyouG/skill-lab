@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { AstGrepClient } from "../../astgrep/client.ts";
+import { DEFAULT_ANALYZER_CONFIG } from "../../config.ts";
 import type { AnalyzerContext, AnalyzerState } from "../../types.ts";
 import { scanFileForPermissions } from "./scan-file.ts";
 
@@ -15,7 +16,7 @@ function createInitialState(): AnalyzerState {
         risks: [],
         warnings: [],
         metadata: {
-            scannedFiles: [],
+            scannedFiles: new Set<string>(),
             skippedFiles: [],
             rulesUsed: [],
             config: {
@@ -27,7 +28,7 @@ function createInitialState(): AnalyzerState {
     };
 }
 
-Deno.test("scanFileForPermissions keeps generic shell matches to likely commands", () => {
+Deno.test("scanFileForPermissions keeps generic shell matches to likely commands", async () => {
     const content = [
         "# rm -rf /tmp/old-data",
         "Set variable before running cleanup.",
@@ -39,8 +40,9 @@ Deno.test("scanFileForPermissions keeps generic shell matches to likely commands
     const state = createInitialState();
     const context = {
         astgrepClient: new AstGrepClient(),
+        config: DEFAULT_ANALYZER_CONFIG,
     } as AnalyzerContext;
-    const next = scanFileForPermissions(context, {
+    const next = await scanFileForPermissions(context, {
         state,
         fileRef: {
             path: "scripts/demo.sh",

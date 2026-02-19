@@ -25,6 +25,10 @@ type PERSISTENCE_RISK_CODES = "PERSISTENCE:persistence";
 
 type SECRETS_RISK_CODES = "SECRETS:secret_access";
 
+type DEPENDENCY_RISK_CODES = "DEPENDENCY:external_import";
+
+type REFERENCE_RISK_CODES = "REFERENCE:external_file";
+
 export type RiskCode =
     | NETWORK_RISK_CODES
     | INJECTION_RISK_CODES
@@ -32,7 +36,9 @@ export type RiskCode =
     | DESTRUCTIVE_RISK_CODES
     | PRIVILEGE_RISK_CODES
     | PERSISTENCE_RISK_CODES
-    | SECRETS_RISK_CODES;
+    | SECRETS_RISK_CODES
+    | DEPENDENCY_RISK_CODES
+    | REFERENCE_RISK_CODES;
 
 export type RuleRiskResult = {
     code: RiskCode;
@@ -49,6 +55,7 @@ export type RuleRiskInput = {
 export type Risk = {
     id: string;
     type: RiskCode;
+    groupKey?: string;
     severity: Severity;
     message: string;
     reference: Reference;

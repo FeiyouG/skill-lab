@@ -26,10 +26,13 @@ export async function discoverReferencedFiles(
         allFiles: SkillFile[];
         readTextFile: (path: string) => Promise<string | null>;
         maxScanDepth: number;
+        onDiscover?: (progress: { scannedCount: number; discoveredCount: number }) => void;
     },
 ): Promise<FileReference[]> {
     const discovered = new Map<string, FileReference>();
     const queue: StartQueueItem[] = [...input.startQueue];
+    let scannedCount = 0;
+    let discoveredCount = 0;
 
     // A set of file paths which have been processed
     const processed = new Set<string>();
@@ -41,6 +44,7 @@ export async function discoverReferencedFiles(
 
         if (processed.has(current.path) || current.depth > input.maxScanDepth) continue;
         processed.add(current.path);
+        input.onDiscover?.({ scannedCount: scannedCount++, discoveredCount });
 
         const content = await input.readTextFile(current.path);
         if (!content) continue;
@@ -111,6 +115,7 @@ export async function discoverReferencedFiles(
                             depth: current.depth + 1,
                             referencedBy: localEntry.referencedBy,
                         });
+                        input.onDiscover?.({ scannedCount, discoveredCount: discoveredCount++ });
                     }
                     continue;
                 }
@@ -141,11 +146,24 @@ export async function discoverReferencedFiles(
                     continue;
                 }
 
-                if (absoluteRef.via === "import" || absoluteRef.via === "source") {
+                if (absoluteRef.via === "import") {
                     discovered.set(normalizedPath, {
                         path: normalizedPath,
                         sourceType: "external",
-                        fileType: "unknown",
+                        fileType: block.language,
+                        role: "library",
+                        depth: current.depth + 1,
+                        discoveryMethod: absoluteRef.via,
+                        referencedBy: referenceFromCurrent,
+                    });
+                    continue;
+                }
+
+                if (absoluteRef.via === "source") {
+                    discovered.set(normalizedPath, {
+                        path: normalizedPath,
+                        sourceType: "external",
+                        fileType: block.language,
                         role: "library",
                         depth: current.depth + 1,
                         discoveryMethod: absoluteRef.via,

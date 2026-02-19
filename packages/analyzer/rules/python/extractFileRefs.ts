@@ -14,13 +14,13 @@ import { isHostFsPath, isUrl } from "../shared/file-refs.ts";
 import type { AnalyzerContext, FileRefDiscovery } from "../../types.ts";
 import { PYTHON_NODE } from "./astTypes.ts";
 
-export function extractPythonFileRefs(
+export async function extractPythonFileRefs(
     context: AnalyzerContext,
     content: string,
-): FileRefDiscovery[] {
+): Promise<FileRefDiscovery[]> {
     const refs: FileRefDiscovery[] = [];
 
-    const ast = context.astgrepClient.parse("python", content);
+    const ast = await context.astgrepClient.parse("python", content);
     const root = ast.root();
 
     // ── import_statement (e.g. `import os`, `import os.path`) ───────────────

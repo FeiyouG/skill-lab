@@ -1,5 +1,6 @@
 import { Command } from "@cliffy/command";
 import { analyzeCommand } from "./commands/analyze.ts";
+import { configCommand } from "./commands/config.ts";
 
 // CLI name - easy to change if needed
 export const CLI_NAME = "slab";
@@ -11,6 +12,7 @@ const main = new Command()
     .description("skill-lab - Skill registry CLI for AI agents")
     .meta("Author", "FeiyouG")
     .meta("Source", "https://github.com/FeiyouG/skill-lab")
+    .command("config", configCommand)
     .command("analyze", analyzeCommand);
 
 // Run CLI - show help by default if no args

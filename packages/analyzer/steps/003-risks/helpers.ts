@@ -6,6 +6,7 @@ export function addRisk(
     state: AnalyzerState,
     input: {
         type: RiskCode;
+        groupKey?: string;
         severity: Severity;
         message: string;
         permissionIds: string[];
@@ -16,6 +17,7 @@ export function addRisk(
     const risk: Risk = {
         id: generateRiskId(input.type, state.risks.length),
         type: input.type,
+        groupKey: input.groupKey,
         severity: input.severity,
         message: input.message,
         reference: input.reference,
